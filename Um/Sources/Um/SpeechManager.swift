@@ -15,6 +15,9 @@ class SpeechManager: NSObject, ObservableObject {
     private let audioEngine = AVAudioEngine()
     private let counter = FillerWordCounter.shared
 
+    /// Keep the audio engine running across restarts to eliminate the gap
+    private var isRestarting = false
+
     override init() {
         super.init()
         recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
@@ -75,10 +78,12 @@ class SpeechManager: NSObject, ObservableObject {
     // MARK: - Recognition Engine
 
     private func beginRecognition() throws {
-        // Tear down any previous session
-        if audioEngine.isRunning {
-            audioEngine.stop()
-            audioEngine.inputNode.removeTap(onBus: 0)
+        // Tear down any previous recognition task (but keep audio engine if restarting)
+        if !isRestarting {
+            if audioEngine.isRunning {
+                audioEngine.stop()
+                audioEngine.inputNode.removeTap(onBus: 0)
+            }
         }
         task?.cancel()
         task = nil
@@ -92,14 +97,15 @@ class SpeechManager: NSObject, ObservableObject {
             request.requiresOnDeviceRecognition = true
         }
 
-        let inputNode = audioEngine.inputNode
-        let fmt = inputNode.outputFormat(forBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: fmt) { [weak self] buffer, _ in
-            self?.request?.append(buffer)
+        if !isRestarting {
+            let inputNode = audioEngine.inputNode
+            let fmt = inputNode.outputFormat(forBus: 0)
+            inputNode.installTap(onBus: 0, bufferSize: 1024, format: fmt) { [weak self] buffer, _ in
+                self?.request?.append(buffer)
+            }
+            audioEngine.prepare()
+            try audioEngine.start()
         }
-
-        audioEngine.prepare()
-        try audioEngine.start()
 
         task = recognizer?.recognitionTask(with: request) { [weak self] result, error in
             guard let self else { return }
@@ -110,7 +116,7 @@ class SpeechManager: NSObject, ObservableObject {
                     self.counter.processTranscript(transcript)
                 }
                 // SFSpeechRecognizer resets after ~60s of audio
-                // When it does, isFinal fires and we restart
+                // When it does, isFinal fires and we restart seamlessly
                 if result.isFinal {
                     DispatchQueue.main.async {
                         self.counter.resetTranscriptTracking()
@@ -134,12 +140,53 @@ class SpeechManager: NSObject, ObservableObject {
 
     private func restartRecognition() {
         guard isListening else { return }
-        // Small delay before restarting to avoid tight loop
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        // Keep audio engine running — only restart the recognition task
+        // This eliminates the gap where words could be missed
+        isRestarting = true
+        DispatchQueue.main.async { [weak self] in
             guard let self, self.isListening else { return }
-            self.audioEngine.inputNode.removeTap(onBus: 0)
-            self.audioEngine.stop()
-            try? self.beginRecognition()
+            self.task?.cancel()
+            self.task = nil
+            self.request?.endAudio()
+
+            // Create new request that reuses the existing audio tap
+            self.request = SFSpeechAudioBufferRecognitionRequest()
+            guard let request = self.request else {
+                self.isRestarting = false
+                return
+            }
+            request.shouldReportPartialResults = true
+            if #available(macOS 13.0, *) {
+                request.requiresOnDeviceRecognition = true
+            }
+
+            self.task = self.recognizer?.recognitionTask(with: request) { [weak self] result, error in
+                guard let self else { return }
+
+                if let result {
+                    let transcript = result.bestTranscription.formattedString
+                    DispatchQueue.main.async {
+                        self.counter.processTranscript(transcript)
+                    }
+                    if result.isFinal {
+                        DispatchQueue.main.async {
+                            self.counter.resetTranscriptTracking()
+                        }
+                        self.restartRecognition()
+                    }
+                }
+
+                if let error {
+                    let ns = error as NSError
+                    let benign = [203, 216, 301]
+                    if !benign.contains(ns.code) {
+                        DispatchQueue.main.async {
+                            self.errorMessage = error.localizedDescription
+                        }
+                    }
+                }
+            }
+            self.isRestarting = false
         }
     }
 
