@@ -20,6 +20,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupStatusItem()
         setupPopover()
         subscribeToCounter()
+
+        // Auto-start listening — fully on-device, no reason to wait
+        SpeechManager.shared.startListening()
     }
 
     private func setupStatusItem() {
