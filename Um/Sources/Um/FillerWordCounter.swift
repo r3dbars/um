@@ -6,11 +6,8 @@ import Combine
 class FillerWordCounter: ObservableObject {
     static let shared = FillerWordCounter()
 
-    // Words to detect — user can customise via Settings
-    @Published var trackedWords: [String] = [
-        "um", "uh", "like", "you know", "basically",
-        "literally", "sort of", "kind of", "right", "so"
-    ]
+    // Words to detect — synced from Preferences
+    @Published var trackedWords: [String] = Preferences.defaultWords
 
     @Published var counts: [String: Int] = [:]
     @Published var totalCount: Int = 0
@@ -28,9 +25,22 @@ class FillerWordCounter: ObservableObject {
         resetCounts()
     }
 
+    // MARK: - Word list sync
+
+    /// Called by Preferences when the tracked word list changes.
+    func updateTrackedWords(_ words: [String]) {
+        trackedWords = words
+        // Add any new words to counts without resetting existing counts
+        for word in words where counts[word] == nil {
+            counts[word] = 0
+        }
+    }
+
     // MARK: - Session Control
 
     func startSession() {
+        // Sync word list from preferences before starting
+        trackedWords = Preferences.shared.trackedWords
         resetCounts()
         isActive = true
         sessionStartTime = Date()
@@ -38,12 +48,15 @@ class FillerWordCounter: ObservableObject {
             guard let self, let start = self.sessionStartTime else { return }
             self.sessionDuration = Date().timeIntervalSince(start)
         }
+        NotificationManager.shared.resetTracking()
     }
 
     func stopSession() {
         isActive = false
         sessionTimer?.invalidate()
         sessionTimer = nil
+        // Save session to history if it was meaningful
+        SessionStore.shared.recordSession(from: self)
     }
 
     func resetCounts() {

@@ -39,6 +39,12 @@ Drag all files from `Um/Sources/Um/` into the Xcode project:
 - `SpeechManager.swift`
 - `FillerWordCounter.swift`
 - `MenuBarView.swift`
+- `SettingsView.swift`
+- `HistoryView.swift`
+- `SessionStore.swift`
+- `Preferences.swift`
+- `NotificationManager.swift`
+- `LaunchAtLoginHelper.swift`
 
 Make sure **"Copy items if needed"** is unchecked (they're already in the right place).
 
@@ -71,33 +77,30 @@ Alternatively: replace the generated `Info.plist` with `Um/Resources/Info.plist`
 
 ## Step 6 — Build & Run
 
-Hit **⌘R**. Um will appear in your menu bar as `um: 0`. Click it to open the popover, hit Start, and start talking.
+Hit **⌘R**. Um will appear in your menu bar with a speech bubble icon and count. Click it to open the popover, hit Start, and start talking.
 
 ---
 
-## Architecture Notes
+## Architecture
 
 ```
-UmApp.swift          — @main entry point, SwiftUI lifecycle
-AppDelegate.swift    — NSStatusItem setup, popover, menu bar label updates
-SpeechManager.swift  — SFSpeechRecognizer wrapper, on-device recognition,
-                       auto-restart after 60s segment limit
-FillerWordCounter.swift — word counting, session tracking, rate calculation
-MenuBarView.swift    — SwiftUI popover UI
+UmApp.swift              — @main entry point, SwiftUI lifecycle
+AppDelegate.swift        — NSStatusItem (menu bar icon + count), popover management
+SpeechManager.swift      — SFSpeechRecognizer wrapper, on-device recognition, seamless restart
+FillerWordCounter.swift  — Word counting, session tracking, rate calculation
+MenuBarView.swift        — Main SwiftUI popover UI with navigation to Settings & History
+SettingsView.swift       — Custom word list editor, notification threshold, launch at login
+HistoryView.swift        — Past session list with averages and rate trends
+SessionStore.swift       — JSON persistence to ~/Library/Application Support/Um/
+Preferences.swift        — UserDefaults-backed settings with word list sync
+NotificationManager.swift — Threshold alerts via UserNotifications
+LaunchAtLoginHelper.swift — SMAppService wrapper for macOS 13+
 ```
 
 **Key design decisions:**
 - `requiresOnDeviceRecognition = true` — audio never leaves the Mac
 - Rolling transcript delta tracking — only processes new words, not the full cumulative transcript on every update
-- Auto-restart — SFSpeechRecognizer has a ~60s limit per task; SpeechManager handles seamless restart
+- Seamless restart — audio engine stays running across 60s segment boundaries, only the recognition task restarts
 - Word-boundary regex — "like" won't match inside "likewise"
-
----
-
-## Roadmap
-
-- [ ] Word history persistence across sessions
-- [ ] Per-session graph (improvement over time)
-- [ ] Customisable word list via Settings
-- [ ] Launch at login option
-- [ ] Notification when you exceed a threshold ("You've said 'um' 20 times")
+- Session auto-save — sessions 5+ seconds are automatically saved to history on stop
+- Preferences sync — custom word list changes take effect on next session start

@@ -12,6 +12,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Hide dock icon — menu bar only
         NSApp.setActivationPolicy(.accessory)
 
+        // Initialize preferences so word list is synced
+        _ = Preferences.shared
+        // Initialize notification manager
+        _ = NotificationManager.shared
+
         setupStatusItem()
         setupPopover()
         subscribeToCounter()
@@ -20,14 +25,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         guard let button = statusItem.button else { return }
-        button.title = "um: 0"
+
+        // Use SF Symbol speech bubble icon + count
+        if let image = NSImage(systemSymbolName: "bubble.left.fill",
+                               accessibilityDescription: "Um") {
+            image.isTemplate = true
+            let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
+            button.image = image.withSymbolConfiguration(config)
+        }
+        button.title = " 0"
+        button.imagePosition = .imageLeading
         button.action = #selector(togglePopover(_:))
         button.target = self
     }
 
     private func setupPopover() {
         popover = NSPopover()
-        popover.contentSize = NSSize(width: 280, height: 380)
+        popover.contentSize = NSSize(width: 280, height: 400)
         popover.behavior = .transient
         popover.animates = true
         popover.contentViewController = NSHostingController(rootView: MenuBarView())
@@ -37,7 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         counter.$totalCount
             .receive(on: RunLoop.main)
             .sink { [weak self] count in
-                self?.statusItem.button?.title = "um: \(count)"
+                self?.statusItem.button?.title = " \(count)"
             }
             .store(in: &cancellables)
 

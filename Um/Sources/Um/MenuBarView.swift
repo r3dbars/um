@@ -1,10 +1,36 @@
 import SwiftUI
 
+enum AppScreen {
+    case main
+    case settings
+    case history
+}
+
 struct MenuBarView: View {
     @StateObject private var counter = FillerWordCounter.shared
     @StateObject private var speech = SpeechManager.shared
+    @StateObject private var store = SessionStore.shared
+    @State private var currentScreen: AppScreen = .main
 
     var body: some View {
+        Group {
+            switch currentScreen {
+            case .main:
+                mainView
+            case .settings:
+                SettingsView()
+            case .history:
+                HistoryView()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .navigateBack)) { _ in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                currentScreen = .main
+            }
+        }
+    }
+
+    private var mainView: some View {
         VStack(spacing: 0) {
             headerSection
             Divider()
@@ -18,7 +44,7 @@ struct MenuBarView: View {
             }
             controlsSection
             Divider()
-            quitButton
+            bottomBar
         }
         .frame(width: 280)
     }
@@ -128,6 +154,19 @@ struct MenuBarView: View {
             Text("Hit Start, then talk.")
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
+            if store.sessionCount > 0 {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        currentScreen = .history
+                    }
+                } label: {
+                    Text("View \(store.sessionCount) past sessions →")
+                        .font(.system(size: 11))
+                        .foregroundColor(.accentColor)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 4)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
@@ -167,15 +206,44 @@ struct MenuBarView: View {
         .padding(.vertical, 10)
     }
 
-    // MARK: - Quit
+    // MARK: - Bottom bar (History, Settings, Quit)
 
-    private var quitButton: some View {
-        Button("Quit Um") {
-            NSApplication.shared.terminate(nil)
+    private var bottomBar: some View {
+        HStack {
+            Button {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    currentScreen = .history
+                }
+            } label: {
+                Image(systemName: "chart.bar")
+                    .font(.system(size: 12))
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+            .help("Session History")
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    currentScreen = .settings
+                }
+            } label: {
+                Image(systemName: "gear")
+                    .font(.system(size: 12))
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+            .help("Settings")
+
+            Spacer()
+
+            Button("Quit Um") {
+                NSApplication.shared.terminate(nil)
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+            .font(.system(size: 11))
         }
-        .buttonStyle(.plain)
-        .foregroundColor(.secondary)
-        .font(.system(size: 11))
+        .padding(.horizontal, 16)
         .padding(.vertical, 8)
     }
 }

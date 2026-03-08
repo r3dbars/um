@@ -16,31 +16,62 @@ Every alternative (Yoodli, etc.) is cloud-based and costs $25/mo. Um is free, op
 
 ## Features
 
-- 🎙 **Real-time detection** — counts as you speak, no delay
-- 📊 **Per-session summary** — total counts per word after each call
-- 📈 **History** — track improvement over time
-- ⚙️ **Custom word list** — add your own verbal tics
-- 🔒 **100% on-device** — audio never leaves your Mac
+- **Real-time detection** — counts as you speak, no delay
+- **Per-session summary** — total counts per word with visual breakdown
+- **Session history** — track improvement over time with rate trends
+- **Custom word list** — add your own verbal tics via the Settings UI
+- **Threshold notifications** — get alerted when you hit a filler word count
+- **Launch at login** — always running, always counting
+- **100% on-device** — audio never leaves your Mac (uses Apple's on-device speech recognition)
+- **Zero dependencies** — purely Apple frameworks, no external packages
 
 ---
 
 ## How it works
 
-Um uses on-device speech recognition (Whisper) running locally on Apple Silicon. It listens for a small vocabulary of filler words — no full transcription, no audio storage, just pattern matching. Tiny CPU footprint.
+Um uses Apple's on-device `SFSpeechRecognizer` running locally on your Mac. It listens for a configurable vocabulary of filler words using word-boundary regex matching — no full transcription stored, no audio saved, just pattern matching on streaming partial results. The audio engine stays running across the 60-second recognition segment restarts so no words are missed.
 
 ---
 
-## Status
+## Architecture
 
-🚧 Early development — built with SwiftUI for macOS
+```
+UmApp.swift              — @main entry point, SwiftUI lifecycle
+AppDelegate.swift        — NSStatusItem (menu bar icon + count), popover management
+SpeechManager.swift      — SFSpeechRecognizer wrapper, on-device recognition, seamless restart
+FillerWordCounter.swift  — Word counting, session tracking, rate calculation
+MenuBarView.swift        — Main SwiftUI popover UI with navigation
+SettingsView.swift       — Custom word list editor, notifications, launch at login
+HistoryView.swift        — Past session list with trend stats
+SessionStore.swift       — JSON persistence to ~/Library/Application Support/Um/
+Preferences.swift        — UserDefaults-backed settings
+NotificationManager.swift — Threshold alerts via UserNotifications
+LaunchAtLoginHelper.swift — SMAppService wrapper for macOS 13+
+```
+
+---
+
+## Requirements
+
+- macOS 13.0+
+- Xcode 15+ (for building)
+
+---
+
+## Quick Start
+
+See [SETUP.md](SETUP.md) for step-by-step Xcode project setup.
 
 ---
 
 ## Tech Stack
 
 - Swift / SwiftUI
-- On-device Whisper (Apple Silicon)
-- macOS 14+
+- Apple Speech framework (on-device SFSpeechRecognizer)
+- AVFoundation (audio capture)
+- UserNotifications (threshold alerts)
+- ServiceManagement (launch at login)
+- No external dependencies
 
 ---
 
