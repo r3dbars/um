@@ -32,6 +32,10 @@ class FillerWordCounter: ObservableObject {
 
     /// Called by Preferences when the tracked word list changes.
     func updateTrackedWords(_ words: [String]) {
+        let added = words.filter { !trackedWords.contains($0) }
+        let removed = trackedWords.filter { !words.contains($0) }
+        if !added.isEmpty { logger.info("Words added to tracking: \(added.joined(separator: ", "))") }
+        if !removed.isEmpty { logger.info("Words removed from tracking: \(removed.joined(separator: ", "))") }
         trackedWords = words
         // Add any new words to counts without resetting existing counts
         for word in words where counts[word] == nil {
@@ -44,6 +48,7 @@ class FillerWordCounter: ObservableObject {
     func startSession() {
         // Sync word list from preferences before starting
         trackedWords = Preferences.shared.trackedWords
+        logger.info("Session starting, tracking \(self.trackedWords.count) words: \(self.trackedWords.joined(separator: ", "))")
         resetCounts()
         isActive = true
         sessionStartTime = Date()
@@ -98,16 +103,18 @@ class FillerWordCounter: ObservableObject {
         guard !newPortion.isEmpty else { return }
 
         var added = 0
+        var matched: [String] = []
         for word in trackedWords {
             let hits = countOccurrences(of: word, in: newPortion.lowercased())
             if hits > 0 {
                 counts[word, default: 0] += hits
                 added += hits
+                matched.append(hits == 1 ? "\"\(word)\"" : "\"\(word)\" x\(hits)")
             }
         }
         if added > 0 {
             totalCount += added
-            logger.info("Detected \(added) filler word(s), total now \(self.totalCount)")
+            logger.info("Detected: \(matched.joined(separator: ", ")) — total now \(self.totalCount)")
         }
     }
 
