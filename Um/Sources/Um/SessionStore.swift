@@ -10,11 +10,15 @@ struct SessionRecord: Codable, Identifiable {
     let counts: [String: Int]
     let ratePerMinute: Double
 
-    var formattedDate: String {
+    private static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateStyle = .medium
         f.timeStyle = .short
-        return f.string(from: date)
+        return f
+    }()
+
+    var formattedDate: String {
+        Self.dateFormatter.string(from: date)
     }
 
     var formattedDuration: String {
