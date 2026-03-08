@@ -22,7 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         subscribeToCounter()
 
         // Auto-start listening — fully on-device, no reason to wait
-        SpeechManager.shared.startListening()
+        WhisperManager.shared.startListening()
     }
 
     private func setupStatusItem() {

@@ -34,8 +34,8 @@ class FillerWordCounter: ObservableObject {
     func updateTrackedWords(_ words: [String]) {
         let added = words.filter { !trackedWords.contains($0) }
         let removed = trackedWords.filter { !words.contains($0) }
-        if !added.isEmpty { logger.info("Words added to tracking: \(added.joined(separator: ", "))") }
-        if !removed.isEmpty { logger.info("Words removed from tracking: \(removed.joined(separator: ", "))") }
+        if !added.isEmpty { logger.info("Words added to tracking: \(added.joined(separator: ", "), privacy: .public)") }
+        if !removed.isEmpty { logger.info("Words removed from tracking: \(removed.joined(separator: ", "), privacy: .public)") }
         trackedWords = words
         // Add any new words to counts without resetting existing counts
         for word in words where counts[word] == nil {
@@ -48,7 +48,7 @@ class FillerWordCounter: ObservableObject {
     func startSession() {
         // Sync word list from preferences before starting
         trackedWords = Preferences.shared.trackedWords
-        logger.info("Session starting, tracking \(self.trackedWords.count) words: \(self.trackedWords.joined(separator: ", "))")
+        logger.info("Session starting, tracking \(self.trackedWords.count) words: \(self.trackedWords.joined(separator: ", "), privacy: .public)")
         resetCounts()
         isActive = true
         sessionStartTime = Date()
@@ -81,7 +81,31 @@ class FillerWordCounter: ObservableObject {
         lastProcessedTranscript = ""
     }
 
-    // MARK: - Detection
+    // MARK: - Detection (Whisper — chunk-based)
+
+    /// Process a complete transcript chunk from Whisper.
+    /// Each chunk is independent — scan the full text for filler words.
+    func processWhisperTranscript(_ transcript: String) {
+        guard !transcript.isEmpty else { return }
+
+        let text = transcript.lowercased()
+        var added = 0
+        var matched: [String] = []
+        for word in trackedWords {
+            let hits = countOccurrences(of: word, in: text)
+            if hits > 0 {
+                counts[word, default: 0] += hits
+                added += hits
+                matched.append(hits == 1 ? "\"\(word)\"" : "\"\(word)\" x\(hits)")
+            }
+        }
+        if added > 0 {
+            totalCount += added
+            logger.info("Detected: \(matched.joined(separator: ", "), privacy: .public) — total now \(self.totalCount)")
+        }
+    }
+
+    // MARK: - Detection (SFSpeechRecognizer — cumulative partial results)
 
     /// Process an incremental transcript from SFSpeechRecognizer.
     /// Only counts words in the *new* portion since last call.
@@ -114,7 +138,7 @@ class FillerWordCounter: ObservableObject {
         }
         if added > 0 {
             totalCount += added
-            logger.info("Detected: \(matched.joined(separator: ", ")) — total now \(self.totalCount)")
+            logger.info("Detected: \(matched.joined(separator: ", "), privacy: .public) — total now \(self.totalCount)")
         }
     }
 

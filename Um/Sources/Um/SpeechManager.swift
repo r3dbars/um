@@ -144,7 +144,7 @@ class SpeechManager: NSObject, ObservableObject {
             consecutiveNoSpeechRestarts = 0
 
             let transcript = result.bestTranscription.formattedString
-            logger.debug("Got transcript (\(transcript.count) chars), isFinal=\(result.isFinal)")
+            logger.info("Transcript: \"\(transcript, privacy: .public)\" isFinal=\(result.isFinal)")
             DispatchQueue.main.async {
                 self.counter.processTranscript(transcript)
             }

@@ -8,7 +8,7 @@ enum AppScreen {
 
 struct MenuBarView: View {
     @StateObject private var counter = FillerWordCounter.shared
-    @StateObject private var speech = SpeechManager.shared
+    @StateObject private var speech = WhisperManager.shared
     @StateObject private var store = SessionStore.shared
     @State private var currentScreen: AppScreen = .main
 
