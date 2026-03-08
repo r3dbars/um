@@ -18,6 +18,10 @@ class SpeechManager: NSObject, ObservableObject {
     /// Keep the audio engine running across restarts to eliminate the gap
     private var isRestarting = false
 
+    /// Throttle for error 1110 (no speech detected) restarts
+    private var consecutiveNoSpeechRestarts = 0
+    private let maxNoSpeechRestarts = 10
+
     override init() {
         super.init()
         recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
@@ -69,6 +73,7 @@ class SpeechManager: NSObject, ObservableObject {
         task?.cancel()
         task = nil
         request = nil
+        consecutiveNoSpeechRestarts = 0
         DispatchQueue.main.async {
             self.isListening = false
             self.counter.stopSession()
@@ -108,30 +113,46 @@ class SpeechManager: NSObject, ObservableObject {
         }
 
         task = recognizer?.recognitionTask(with: request) { [weak self] result, error in
-            guard let self else { return }
+            self?.handleRecognitionResult(result, error: error)
+        }
+    }
 
-            if let result {
-                let transcript = result.bestTranscription.formattedString
+    /// Shared handler for recognition task callbacks — used by both initial and restarted tasks
+    private func handleRecognitionResult(_ result: SFSpeechRecognitionResult?, error: Error?) {
+        if let result {
+            // Reset the no-speech counter on any successful transcript
+            consecutiveNoSpeechRestarts = 0
+
+            let transcript = result.bestTranscription.formattedString
+            DispatchQueue.main.async {
+                self.counter.processTranscript(transcript)
+            }
+            // SFSpeechRecognizer resets after ~60s of audio
+            // When it does, isFinal fires and we restart seamlessly
+            if result.isFinal {
                 DispatchQueue.main.async {
-                    self.counter.processTranscript(transcript)
+                    self.counter.resetTranscriptTracking()
                 }
-                // SFSpeechRecognizer resets after ~60s of audio
-                // When it does, isFinal fires and we restart seamlessly
-                if result.isFinal {
-                    DispatchQueue.main.async {
-                        self.counter.resetTranscriptTracking()
-                    }
-                    self.restartRecognition()
+                restartRecognition()
+            }
+        }
+
+        if let error {
+            let ns = error as NSError
+            // Ignore benign codes: 203/216 = cancellation, 301 = rate limit, 1110 = no speech detected
+            let benign = [203, 216, 301, 1110]
+            if !benign.contains(ns.code) {
+                DispatchQueue.main.async {
+                    self.errorMessage = error.localizedDescription
                 }
             }
-
-            if let error {
-                let ns = error as NSError
-                // Ignore benign cancellation codes
-                let benign = [203, 216, 301]
-                if !benign.contains(ns.code) {
-                    DispatchQueue.main.async {
-                        self.errorMessage = error.localizedDescription
+            // If no speech detected, restart with throttle to avoid tight loop
+            if ns.code == 1110 {
+                consecutiveNoSpeechRestarts += 1
+                if consecutiveNoSpeechRestarts < maxNoSpeechRestarts {
+                    let delay = min(Double(consecutiveNoSpeechRestarts) * 0.5, 3.0)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                        self?.restartRecognition()
                     }
                 }
             }
@@ -143,51 +164,25 @@ class SpeechManager: NSObject, ObservableObject {
         // Keep audio engine running — only restart the recognition task
         // This eliminates the gap where words could be missed
         isRestarting = true
-        DispatchQueue.main.async { [weak self] in
-            guard let self, self.isListening else { return }
-            self.task?.cancel()
-            self.task = nil
-            self.request?.endAudio()
+        task?.cancel()
+        task = nil
+        request?.endAudio()
 
-            // Create new request that reuses the existing audio tap
-            self.request = SFSpeechAudioBufferRecognitionRequest()
-            guard let request = self.request else {
-                self.isRestarting = false
-                return
-            }
-            request.shouldReportPartialResults = true
-            if #available(macOS 13.0, *) {
-                request.requiresOnDeviceRecognition = true
-            }
-
-            self.task = self.recognizer?.recognitionTask(with: request) { [weak self] result, error in
-                guard let self else { return }
-
-                if let result {
-                    let transcript = result.bestTranscription.formattedString
-                    DispatchQueue.main.async {
-                        self.counter.processTranscript(transcript)
-                    }
-                    if result.isFinal {
-                        DispatchQueue.main.async {
-                            self.counter.resetTranscriptTracking()
-                        }
-                        self.restartRecognition()
-                    }
-                }
-
-                if let error {
-                    let ns = error as NSError
-                    let benign = [203, 216, 301]
-                    if !benign.contains(ns.code) {
-                        DispatchQueue.main.async {
-                            self.errorMessage = error.localizedDescription
-                        }
-                    }
-                }
-            }
-            self.isRestarting = false
+        // Create new request that reuses the existing audio tap
+        request = SFSpeechAudioBufferRecognitionRequest()
+        guard let request else {
+            isRestarting = false
+            return
         }
+        request.shouldReportPartialResults = true
+        if #available(macOS 13.0, *) {
+            request.requiresOnDeviceRecognition = true
+        }
+
+        task = recognizer?.recognitionTask(with: request) { [weak self] result, error in
+            self?.handleRecognitionResult(result, error: error)
+        }
+        isRestarting = false
     }
 
     // MARK: - Errors
