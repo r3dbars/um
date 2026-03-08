@@ -2,6 +2,18 @@ import Speech
 import AVFoundation
 import Combine
 
+private func umLog(_ message: String) {
+    let line = "[\(Date())] \(message)\n"
+    let path = "/tmp/um-debug.log"
+    if let handle = FileHandle(forWritingAtPath: path) {
+        handle.seekToEndOfFile()
+        handle.write(line.data(using: .utf8)!)
+        handle.closeFile()
+    } else {
+        FileManager.default.createFile(atPath: path, contents: line.data(using: .utf8))
+    }
+}
+
 class SpeechManager: NSObject, ObservableObject {
     static let shared = SpeechManager()
 
@@ -17,6 +29,7 @@ class SpeechManager: NSObject, ObservableObject {
 
     /// Keep the audio engine running across restarts to eliminate the gap
     private var isRestarting = false
+    private var bufferCount = 0
 
     override init() {
         super.init()
@@ -39,14 +52,20 @@ class SpeechManager: NSObject, ObservableObject {
     // MARK: - Start / Stop
 
     func startListening() {
+        umLog("startListening called, authStatus=\(authStatus.rawValue)")
         guard authStatus == .authorized else {
+            umLog("Not authorized, requesting permissions...")
             requestPermissions { [weak self] granted in
+                umLog("Permission result: granted=\(granted)")
                 if granted { self?.startListening() }
             }
             return
         }
 
-        guard !audioEngine.isRunning else { return }
+        guard !audioEngine.isRunning else {
+            umLog("Audio engine already running, skipping")
+            return
+        }
 
         do {
             try beginRecognition()
@@ -54,8 +73,10 @@ class SpeechManager: NSObject, ObservableObject {
                 self.isListening = true
                 self.errorMessage = nil
                 self.counter.startSession()
+                umLog("Listening started successfully")
             }
         } catch {
+            umLog("Error starting: \(error)")
             DispatchQueue.main.async {
                 self.errorMessage = "Mic error: \(error.localizedDescription)"
             }
@@ -100,18 +121,29 @@ class SpeechManager: NSObject, ObservableObject {
         if !isRestarting {
             let inputNode = audioEngine.inputNode
             let fmt = inputNode.outputFormat(forBus: 0)
+            umLog("Audio format: \(fmt)")
             inputNode.installTap(onBus: 0, bufferSize: 1024, format: fmt) { [weak self] buffer, _ in
-                self?.request?.append(buffer)
+                guard let self else { return }
+                self.request?.append(buffer)
+                self.bufferCount += 1
+                if self.bufferCount == 1 || self.bufferCount % 100 == 0 {
+                    umLog("Buffer #\(self.bufferCount), frameLength=\(buffer.frameLength)")
+                }
             }
             audioEngine.prepare()
             try audioEngine.start()
+            umLog("Audio engine started")
         }
+
+        umLog("Recognizer available: \(recognizer?.isAvailable ?? false)")
+        umLog("Recognizer supportsOnDevice: \(recognizer?.supportsOnDeviceRecognition ?? false)")
 
         task = recognizer?.recognitionTask(with: request) { [weak self] result, error in
             guard let self else { return }
 
             if let result {
                 let transcript = result.bestTranscription.formattedString
+                umLog("Transcript: \"\(transcript)\" isFinal=\(result.isFinal)")
                 DispatchQueue.main.async {
                     self.counter.processTranscript(transcript)
                 }
@@ -126,15 +158,24 @@ class SpeechManager: NSObject, ObservableObject {
             }
 
             if let error {
+                umLog("Recognition error: \(error) (code=\((error as NSError).code))")
                 let ns = error as NSError
-                // Ignore benign cancellation codes
-                let benign = [203, 216, 301]
+                // Ignore benign codes: 203/216 = cancellation, 301 = rate limit, 1110 = no speech detected
+                let benign = [203, 216, 301, 1110]
                 if !benign.contains(ns.code) {
                     DispatchQueue.main.async {
                         self.errorMessage = error.localizedDescription
                     }
                 }
+                // If no speech detected, restart recognition to keep listening
+                if ns.code == 1110 {
+                    self.restartRecognition()
+                }
             }
+        }
+
+        if task == nil {
+            umLog("WARNING: recognitionTask returned nil — recognizer may be nil or unavailable")
         }
     }
 
@@ -177,12 +218,16 @@ class SpeechManager: NSObject, ObservableObject {
                 }
 
                 if let error {
+                    umLog("Restart recognition error: \(error) (code=\((error as NSError).code))")
                     let ns = error as NSError
-                    let benign = [203, 216, 301]
+                    let benign = [203, 216, 301, 1110]
                     if !benign.contains(ns.code) {
                         DispatchQueue.main.async {
                             self.errorMessage = error.localizedDescription
                         }
+                    }
+                    if ns.code == 1110 {
+                        self.restartRecognition()
                     }
                 }
             }

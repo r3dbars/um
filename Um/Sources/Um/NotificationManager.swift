@@ -6,17 +6,25 @@ import Combine
 class NotificationManager: ObservableObject {
     static let shared = NotificationManager()
 
-    private let center = UNUserNotificationCenter.current()
+    private let center: UNUserNotificationCenter?
     private var cancellables = Set<AnyCancellable>()
     private var lastNotifiedCount: Int = 0
     private let prefs = Preferences.shared
 
     init() {
+        // UNUserNotificationCenter requires a proper .app bundle.
+        // When running via `swift build`, Bundle.main has no bundleIdentifier,
+        // so we guard against the crash and degrade gracefully.
+        if Bundle.main.bundleIdentifier != nil {
+            center = UNUserNotificationCenter.current()
+        } else {
+            center = nil
+        }
         subscribeToCounter()
     }
 
     func requestPermission() {
-        center.requestAuthorization(options: [.alert, .sound]) { granted, error in
+        center?.requestAuthorization(options: [.alert, .sound]) { granted, error in
             if let error {
                 print("Notifications: \(error.localizedDescription)")
             }
@@ -58,7 +66,7 @@ class NotificationManager: ObservableObject {
             content: content,
             trigger: nil
         )
-        center.add(request)
+        center?.add(request)
     }
 
     /// Reset tracking when a new session starts
