@@ -1,6 +1,9 @@
 import Speech
 import AVFoundation
 import Combine
+import os
+
+private let logger = Logger(subsystem: "com.um.app", category: "SpeechManager")
 
 class SpeechManager: NSObject, ObservableObject {
     static let shared = SpeechManager()
@@ -43,14 +46,20 @@ class SpeechManager: NSObject, ObservableObject {
     // MARK: - Start / Stop
 
     func startListening() {
+        logger.info("startListening called, authStatus=\(self.authStatus.rawValue)")
         guard authStatus == .authorized else {
+            logger.notice("Not authorized, requesting permissions")
             requestPermissions { [weak self] granted in
+                logger.info("Permission result: granted=\(granted)")
                 if granted { self?.startListening() }
             }
             return
         }
 
-        guard !audioEngine.isRunning else { return }
+        guard !audioEngine.isRunning else {
+            logger.debug("Audio engine already running, skipping")
+            return
+        }
 
         do {
             try beginRecognition()
@@ -58,8 +67,10 @@ class SpeechManager: NSObject, ObservableObject {
                 self.isListening = true
                 self.errorMessage = nil
                 self.counter.startSession()
+                logger.info("Listening started successfully")
             }
         } catch {
+            logger.error("Failed to start: \(error.localizedDescription)")
             DispatchQueue.main.async {
                 self.errorMessage = "Mic error: \(error.localizedDescription)"
             }
@@ -83,6 +94,7 @@ class SpeechManager: NSObject, ObservableObject {
     // MARK: - Recognition Engine
 
     private func beginRecognition() throws {
+        logger.info("beginRecognition, isRestarting=\(self.isRestarting)")
         // Tear down any previous recognition task (but keep audio engine if restarting)
         if !isRestarting {
             if audioEngine.isRunning {
@@ -105,15 +117,23 @@ class SpeechManager: NSObject, ObservableObject {
         if !isRestarting {
             let inputNode = audioEngine.inputNode
             let fmt = inputNode.outputFormat(forBus: 0)
+            logger.info("Audio format: sampleRate=\(fmt.sampleRate), channels=\(fmt.channelCount)")
             inputNode.installTap(onBus: 0, bufferSize: 1024, format: fmt) { [weak self] buffer, _ in
                 self?.request?.append(buffer)
             }
             audioEngine.prepare()
             try audioEngine.start()
+            logger.info("Audio engine started")
         }
+
+        logger.info("Recognizer available=\(self.recognizer?.isAvailable ?? false), supportsOnDevice=\(self.recognizer?.supportsOnDeviceRecognition ?? false)")
 
         task = recognizer?.recognitionTask(with: request) { [weak self] result, error in
             self?.handleRecognitionResult(result, error: error)
+        }
+
+        if task == nil {
+            logger.error("recognitionTask returned nil — recognizer may be unavailable")
         }
     }
 
@@ -124,6 +144,7 @@ class SpeechManager: NSObject, ObservableObject {
             consecutiveNoSpeechRestarts = 0
 
             let transcript = result.bestTranscription.formattedString
+            logger.debug("Got transcript (\(transcript.count) chars), isFinal=\(result.isFinal)")
             DispatchQueue.main.async {
                 self.counter.processTranscript(transcript)
             }
@@ -139,6 +160,7 @@ class SpeechManager: NSObject, ObservableObject {
 
         if let error {
             let ns = error as NSError
+            logger.warning("Recognition error: code=\(ns.code), domain=\(ns.domain)")
             // Ignore benign codes: 203/216 = cancellation, 301 = rate limit, 1110 = no speech detected
             let benign = [203, 216, 301, 1110]
             if !benign.contains(ns.code) {
@@ -149,11 +171,14 @@ class SpeechManager: NSObject, ObservableObject {
             // If no speech detected, restart with throttle to avoid tight loop
             if ns.code == 1110 {
                 consecutiveNoSpeechRestarts += 1
+                logger.info("No speech detected, restart \(self.consecutiveNoSpeechRestarts)/\(self.maxNoSpeechRestarts)")
                 if consecutiveNoSpeechRestarts < maxNoSpeechRestarts {
                     let delay = min(Double(consecutiveNoSpeechRestarts) * 0.5, 3.0)
                     DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                         self?.restartRecognition()
                     }
+                } else {
+                    logger.error("Max no-speech restarts reached, giving up")
                 }
             }
         }

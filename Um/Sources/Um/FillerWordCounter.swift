@@ -1,5 +1,8 @@
 import Foundation
 import Combine
+import os
+
+private let logger = Logger(subsystem: "com.um.app", category: "FillerWordCounter")
 
 /// Tracks filler word occurrences across a session.
 /// Thread-safe via main-thread publishing.
@@ -104,6 +107,7 @@ class FillerWordCounter: ObservableObject {
         }
         if added > 0 {
             totalCount += added
+            logger.info("Detected \(added) filler word(s), total now \(self.totalCount)")
         }
     }
 
