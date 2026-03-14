@@ -123,4 +123,17 @@ class SessionStore: ObservableObject {
     var totalTime: TimeInterval {
         sessions.reduce(0) { $0 + $1.durationSeconds }
     }
+
+    /// Trend in filler rate across the last N sessions (negative = improving, positive = worsening).
+    /// Compares first-half vs second-half averages within the window.
+    func trend(last n: Int) -> Double {
+        let recent = Array(sessions.suffix(n))
+        guard recent.count >= 4 else { return 0 }
+        let half = recent.count / 2
+        let earlier = recent.prefix(half)
+        let later = recent.suffix(half)
+        let earlierAvg = earlier.reduce(0.0) { $0 + $1.ratePerMinute } / Double(half)
+        let laterAvg = later.reduce(0.0) { $0 + $1.ratePerMinute } / Double(half)
+        return laterAvg - earlierAvg
+    }
 }

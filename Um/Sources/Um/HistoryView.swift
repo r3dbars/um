@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 struct HistoryView: View {
     @ObservedObject private var store = SessionStore.shared
@@ -11,6 +12,8 @@ struct HistoryView: View {
                 emptyHistory
             } else {
                 summaryStats
+                Divider()
+                trendChart
                 Divider()
                 sessionList
             }
@@ -40,31 +43,32 @@ struct HistoryView: View {
         .padding(.vertical, 10)
     }
 
-    // MARK: - Summary
+    // MARK: - Summary Stats
 
     private var summaryStats: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 0) {
             statBlock(
-                label: "Avg Rate",
+                label: "All-time avg",
                 value: String(format: "%.1f/min", store.averageRate)
             )
+            Divider().frame(height: 36)
             statBlock(
-                label: "Last 5 Avg",
+                label: "Last 5 avg",
                 value: String(format: "%.1f/min", store.averageRate(last: 5))
             )
+            Divider().frame(height: 36)
             statBlock(
-                label: "Total Time",
+                label: "Total time",
                 value: formattedTotalTime
             )
         }
-        .padding(.horizontal, 16)
         .padding(.vertical, 10)
     }
 
     private func statBlock(label: String, value: String) -> some View {
         VStack(spacing: 2) {
             Text(value)
-                .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                .font(.system(size: 13, weight: .semibold, design: .monospaced))
             Text(label)
                 .font(.system(size: 9))
                 .foregroundColor(.secondary)
@@ -77,13 +81,79 @@ struct HistoryView: View {
         let total = Int(store.totalTime)
         let h = total / 3600
         let m = (total % 3600) / 60
-        if h > 0 {
-            return "\(h)h \(m)m"
-        }
+        if h > 0 { return "\(h)h \(m)m" }
         return "\(m)m"
     }
 
-    // MARK: - Session list
+    // MARK: - Trend Chart
+
+    private var trendChart: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("Rate over time")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+                Spacer()
+                trendBadge
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+
+            let recent = Array(store.sessions.suffix(20))
+            if recent.count >= 2 {
+                Chart {
+                    ForEach(Array(recent.enumerated()), id: \.offset) { i, session in
+                        LineMark(
+                            x: .value("Session", i),
+                            y: .value("Rate", session.ratePerMinute)
+                        )
+                        .foregroundStyle(Color.accentColor)
+                        .interpolationMethod(.catmullRom)
+
+                        AreaMark(
+                            x: .value("Session", i),
+                            y: .value("Rate", session.ratePerMinute)
+                        )
+                        .foregroundStyle(Color.accentColor.opacity(0.12))
+                        .interpolationMethod(.catmullRom)
+                    }
+                }
+                .chartXAxis(.hidden)
+                .chartYAxis {
+                    AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) {
+                        AxisValueLabel()
+                            .font(.system(size: 8))
+                    }
+                }
+                .frame(height: 60)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+            }
+        }
+    }
+
+    private var trendBadge: some View {
+        let trend = store.trend(last: 5)
+        return Group {
+            if trend < -0.5 {
+                Label("Improving", systemImage: "arrow.down.right")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.green)
+            } else if trend > 0.5 {
+                Label("Getting worse", systemImage: "arrow.up.right")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.red)
+            } else {
+                Label("Steady", systemImage: "arrow.right")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.trailing, 16)
+    }
+
+    // MARK: - Session List
 
     private var sessionList: some View {
         ScrollView {
@@ -94,7 +164,7 @@ struct HistoryView: View {
                 }
             }
         }
-        .frame(maxHeight: 280)
+        .frame(maxHeight: 220)
     }
 
     private func sessionRow(_ session: SessionRecord) -> some View {
@@ -118,6 +188,14 @@ struct HistoryView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .swipeActions(edge: .trailing) {
+            Button(role: .destructive) {
+                store.deleteSession(session)
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
 
     private func rateColor(_ rate: Double) -> Color {
@@ -128,7 +206,7 @@ struct HistoryView: View {
         }
     }
 
-    // MARK: - Empty state
+    // MARK: - Empty State
 
     private var emptyHistory: some View {
         VStack(spacing: 6) {
