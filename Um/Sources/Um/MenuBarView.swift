@@ -8,8 +8,9 @@ enum AppScreen {
 
 struct MenuBarView: View {
     @StateObject private var counter = FillerWordCounter.shared
-    @StateObject private var speech = WhisperManager.shared
+    @StateObject private var listening = ListeningController.shared
     @StateObject private var store = SessionStore.shared
+    @ObservedObject private var prefs = Preferences.shared
     @State private var currentScreen: AppScreen = .main
 
     var body: some View {
@@ -34,12 +35,15 @@ struct MenuBarView: View {
         VStack(spacing: 0) {
             headerSection
             Divider()
-            if counter.totalCount > 0 {
+            if !prefs.hasCompletedOnboarding {
+                onboardingSection
+                Divider()
+            } else if counter.totalCount > 0 {
                 countsSection
                 Divider()
                 statsRow
                 Divider()
-            } else if !speech.isListening {
+            } else {
                 emptyState
             }
             controlsSection
@@ -48,8 +52,6 @@ struct MenuBarView: View {
         }
         .frame(width: 280)
     }
-
-    // MARK: - Header
 
     private var headerSection: some View {
         HStack(alignment: .center, spacing: 12) {
@@ -67,11 +69,12 @@ struct MenuBarView: View {
 
     private var statusLabel: some View {
         Group {
-            if let error = speech.errorMessage {
+            if let error = listening.errorMessage, !listening.isListening {
                 Label(error, systemImage: "exclamationmark.triangle.fill")
                     .foregroundColor(.red)
-            } else if speech.isListening {
-                Label("Listening", systemImage: "mic.fill")
+                    .lineLimit(2)
+            } else if listening.isListening {
+                Label(listening.usesWhisper ? "Listening" : "Listening (Apple Speech)", systemImage: "mic.fill")
                     .foregroundColor(.green)
             } else {
                 Label("Not listening", systemImage: "mic.slash")
@@ -98,7 +101,25 @@ struct MenuBarView: View {
         }
     }
 
-    // MARK: - Counts breakdown
+    private var onboardingSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("A number in your menu bar.")
+                .font(.system(size: 14, weight: .semibold))
+            Text("Um listens on this Mac and counts filler words — um, uh, like, you know. Audio never leaves your computer.")
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                finishOnboardingAndListen()
+            } label: {
+                Label(listening.isListening ? "Got it" : "Enable microphone & start", systemImage: "mic.circle.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding(16)
+    }
 
     private var countsSection: some View {
         ScrollView {
@@ -113,11 +134,9 @@ struct MenuBarView: View {
                             .foregroundColor(.secondary)
                             .contentTransition(.numericText())
                             .animation(.spring(response: 0.25), value: item.count)
-                        // Visual proportion bar
                         RoundedRectangle(cornerRadius: 2)
                             .fill(Color.accentColor.opacity(0.5))
-                            .frame(width: CGFloat(item.count) / CGFloat(max(counter.totalCount, 1)) * 40,
-                                   height: 6)
+                            .frame(width: CGFloat(item.count) / CGFloat(max(counter.totalCount, 1)) * 40, height: 6)
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 5)
@@ -127,8 +146,6 @@ struct MenuBarView: View {
         }
         .frame(maxHeight: 180)
     }
-
-    // MARK: - Stats row
 
     private var statsRow: some View {
         HStack {
@@ -144,16 +161,15 @@ struct MenuBarView: View {
         .padding(.vertical, 6)
     }
 
-    // MARK: - Empty state
-
     private var emptyState: some View {
         VStack(spacing: 6) {
-            Image(systemName: "mic.badge.plus")
+            Image(systemName: listening.isListening ? "ear" : "mic.badge.plus")
                 .font(.system(size: 28))
                 .foregroundColor(.secondary)
-            Text("Hit Start, then talk.")
+            Text(listening.isListening ? "Talk normally. Filler words show up here." : "Hit Start, then talk.")
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
             if store.sessionCount > 0 {
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -170,43 +186,40 @@ struct MenuBarView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
+        .padding(.horizontal, 16)
     }
-
-    // MARK: - Controls
 
     private var controlsSection: some View {
         HStack(spacing: 8) {
             Button {
-                if speech.isListening {
-                    speech.stopListening()
+                if listening.isListening {
+                    listening.stopListening()
                 } else {
-                    speech.startListening()
+                    listening.startListening()
                 }
             } label: {
                 Label(
-                    speech.isListening ? "Stop" : "Start",
-                    systemImage: speech.isListening ? "stop.circle.fill" : "mic.circle.fill"
+                    listening.isListening ? "Stop" : "Start",
+                    systemImage: listening.isListening ? "stop.circle.fill" : "mic.circle.fill"
                 )
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .tint(speech.isListening ? .red : .accentColor)
+            .tint(listening.isListening ? .red : .accentColor)
             .keyboardShortcut(.space, modifiers: [])
 
             Button {
-                speech.stopListening()
+                listening.stopListening()
                 counter.resetCounts()
             } label: {
                 Label("Reset", systemImage: "arrow.counterclockwise")
             }
             .buttonStyle(.bordered)
-            .disabled(!speech.isListening && counter.totalCount == 0)
+            .disabled(!listening.isListening && counter.totalCount == 0)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
     }
-
-    // MARK: - Bottom bar (History, Settings, Quit)
 
     private var bottomBar: some View {
         HStack {
@@ -245,6 +258,13 @@ struct MenuBarView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+    }
+
+    private func finishOnboardingAndListen() {
+        prefs.hasCompletedOnboarding = true
+        if !listening.isListening {
+            listening.startListening()
+        }
     }
 }
 

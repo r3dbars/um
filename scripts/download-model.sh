@@ -10,6 +10,8 @@ MODEL_DIR="${ROOT}/models"
 MODEL_PATH="${MODEL_DIR}/ggml-tiny.en.bin"
 MODEL_URL="${WHISPER_MODEL_URL:-https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin}"
 MIN_BYTES=$((10 * 1024 * 1024))
+# Official whisper.cpp listing uses a 40-char SHA-1 for tiny.en
+EXPECTED_SHA1="${WHISPER_MODEL_SHA1:-c78c86eb1a8faa21b369bcd33207cc90d64ae9df}"
 
 file_size() {
   local path="$1"
@@ -56,6 +58,22 @@ final_size="$(file_size "${MODEL_PATH}")"
 if (( final_size <= MIN_BYTES )); then
   echo "error: downloaded file is only ${final_size} bytes (expected >10MB). The download is incomplete or not the ggml model." >&2
   exit 1
+fi
+
+actual_sha=""
+if command -v shasum >/dev/null 2>&1; then
+  actual_sha="$(shasum -a 1 "${MODEL_PATH}" | awk '{ print $1 }')"
+elif command -v sha1sum >/dev/null 2>&1; then
+  actual_sha="$(sha1sum "${MODEL_PATH}" | awk '{ print $1 }')"
+fi
+if [[ -n "${actual_sha}" && "${actual_sha}" != "${EXPECTED_SHA1}" ]]; then
+  echo "error: SHA-1 mismatch for ${MODEL_PATH}" >&2
+  echo "    expected ${EXPECTED_SHA1}" >&2
+  echo "    actual   ${actual_sha}" >&2
+  exit 1
+fi
+if [[ -n "${actual_sha}" ]]; then
+  echo "    SHA-1 OK (${actual_sha})"
 fi
 
 echo "    Downloaded $(human_mb "${final_size}") (${final_size} bytes)"

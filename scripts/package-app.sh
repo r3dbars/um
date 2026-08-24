@@ -151,6 +151,28 @@ copy_icon_if_present() {
     fi
   done
 
+  if [[ -z "${found}" && -f "${ROOT}/Um/Resources/AppIcon-1024.png" ]] && command -v sips >/dev/null 2>&1 && command -v iconutil >/dev/null 2>&1; then
+    echo "    Building AppIcon.icns from AppIcon-1024.png"
+    local iconset
+    iconset="$(mktemp -d "${TMPDIR:-/tmp}/um-iconset.XXXXXX")"
+    mkdir -p "${iconset}/AppIcon.iconset"
+    local src="${ROOT}/Um/Resources/AppIcon-1024.png"
+    sips -z 16 16     "${src}" --out "${iconset}/AppIcon.iconset/icon_16x16.png" >/dev/null
+    sips -z 32 32     "${src}" --out "${iconset}/AppIcon.iconset/icon_16x16@2x.png" >/dev/null
+    sips -z 32 32     "${src}" --out "${iconset}/AppIcon.iconset/icon_32x32.png" >/dev/null
+    sips -z 64 64     "${src}" --out "${iconset}/AppIcon.iconset/icon_32x32@2x.png" >/dev/null
+    sips -z 128 128   "${src}" --out "${iconset}/AppIcon.iconset/icon_128x128.png" >/dev/null
+    sips -z 256 256   "${src}" --out "${iconset}/AppIcon.iconset/icon_128x128@2x.png" >/dev/null
+    sips -z 256 256   "${src}" --out "${iconset}/AppIcon.iconset/icon_256x256.png" >/dev/null
+    sips -z 512 512   "${src}" --out "${iconset}/AppIcon.iconset/icon_256x256@2x.png" >/dev/null
+    sips -z 512 512   "${src}" --out "${iconset}/AppIcon.iconset/icon_512x512.png" >/dev/null
+    sips -z 1024 1024 "${src}" --out "${iconset}/AppIcon.iconset/icon_512x512@2x.png" >/dev/null
+    iconutil -c icns "${iconset}/AppIcon.iconset" -o "${RESOURCES_DIR}/AppIcon.icns"
+    rm -rf "${iconset}"
+    plist_set_string "${CONTENTS}/Info.plist" "CFBundleIconFile" "AppIcon"
+    return 0
+  fi
+
   if [[ -z "${found}" ]]; then
     local search_roots=()
     [[ -d "${ROOT}/Um" ]] && search_roots+=("${ROOT}/Um")

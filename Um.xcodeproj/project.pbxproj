@@ -1,0 +1,581 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10001 /* WordMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10001 /* WordMatcher.swift */; };
+		A10002 /* UmApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10002 /* UmApp.swift */; };
+		A10003 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10003 /* AppDelegate.swift */; };
+		A10004 /* ListeningController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10004 /* ListeningController.swift */; };
+		A10005 /* SpeechManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10005 /* SpeechManager.swift */; };
+		A10006 /* WhisperManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10006 /* WhisperManager.swift */; };
+		A10007 /* FillerWordCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10007 /* FillerWordCounter.swift */; };
+		A10008 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10008 /* MenuBarView.swift */; };
+		A10009 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10009 /* SettingsView.swift */; };
+		A10010 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10010 /* HistoryView.swift */; };
+		A10011 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10011 /* SessionStore.swift */; };
+		A10012 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10012 /* Preferences.swift */; };
+		A10013 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10013 /* NotificationManager.swift */; };
+		A10014 /* LaunchAtLoginHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10014 /* LaunchAtLoginHelper.swift */; };
+		A10015 /* AppNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10015 /* AppNotifications.swift */; };
+		A10016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10016 /* Assets.xcassets */; };
+		A10017 /* libUmCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = P10002 /* libUmCore.a */; };
+		A10018 /* SwiftWhisper in Frameworks */ = {isa = PBXBuildFile; productRef = D10001 /* SwiftWhisper */; };
+		A10019 /* WordMatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10017 /* WordMatcherTests.swift */; };
+		A10020 /* libUmCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = P10002 /* libUmCore.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C10001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = P10000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = T10002;
+			remoteInfo = UmCore;
+		};
+		C10002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = P10000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = T10002;
+			remoteInfo = UmCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		B10001 /* WordMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMatcher.swift; sourceTree = "<group>"; };
+		B10002 /* UmApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UmApp.swift; sourceTree = "<group>"; };
+		B10003 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		B10004 /* ListeningController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListeningController.swift; sourceTree = "<group>"; };
+		B10005 /* SpeechManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechManager.swift; sourceTree = "<group>"; };
+		B10006 /* WhisperManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperManager.swift; sourceTree = "<group>"; };
+		B10007 /* FillerWordCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FillerWordCounter.swift; sourceTree = "<group>"; };
+		B10008 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		B10009 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B10010 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		B10011 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		B10012 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
+		B10013 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		B10014 /* LaunchAtLoginHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginHelper.swift; sourceTree = "<group>"; };
+		B10015 /* AppNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotifications.swift; sourceTree = "<group>"; };
+		B10016 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B10017 /* WordMatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMatcherTests.swift; sourceTree = "<group>"; };
+		B10018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B10019 /* Um.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Um.entitlements; sourceTree = "<group>"; };
+		P10001 /* Um.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Um.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		P10002 /* libUmCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libUmCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		P10003 /* UmCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UmCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F10001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10017 /* libUmCore.a in Frameworks */,
+				A10018 /* SwiftWhisper in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F10002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F10003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10020 /* libUmCore.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		G10000 = {
+			isa = PBXGroup;
+			children = (
+				G10002 /* Um */,
+				G10006 /* Tests */,
+				G10001 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		G10001 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				P10001 /* Um.app */,
+				P10002 /* libUmCore.a */,
+				P10003 /* UmCoreTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		G10002 /* Um */ = {
+			isa = PBXGroup;
+			children = (
+				G10003 /* Sources */,
+				G10005 /* Resources */,
+			);
+			path = Um;
+			sourceTree = "<group>";
+		};
+		G10003 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				G10004 /* UmCore */,
+				G10007 /* Um */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		G10004 /* UmCore */ = {
+			isa = PBXGroup;
+			children = (
+				B10001 /* WordMatcher.swift */,
+			);
+			path = UmCore;
+			sourceTree = "<group>";
+		};
+		G10007 /* Um */ = {
+			isa = PBXGroup;
+			children = (
+				B10002 /* UmApp.swift */,
+				B10003 /* AppDelegate.swift */,
+				B10004 /* ListeningController.swift */,
+				B10005 /* SpeechManager.swift */,
+				B10006 /* WhisperManager.swift */,
+				B10007 /* FillerWordCounter.swift */,
+				B10008 /* MenuBarView.swift */,
+				B10009 /* SettingsView.swift */,
+				B10010 /* HistoryView.swift */,
+				B10011 /* SessionStore.swift */,
+				B10012 /* Preferences.swift */,
+				B10013 /* NotificationManager.swift */,
+				B10014 /* LaunchAtLoginHelper.swift */,
+				B10015 /* AppNotifications.swift */,
+			);
+			path = Um;
+			sourceTree = "<group>";
+		};
+		G10005 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B10016 /* Assets.xcassets */,
+				B10018 /* Info.plist */,
+				B10019 /* Um.entitlements */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		G10006 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				B10017 /* WordMatcherTests.swift */,
+			);
+			name = Tests;
+			path = Tests/UmCoreTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		T10001 /* Um */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = L10002 /* Build configuration list for PBXNativeTarget "Um" */;
+			buildPhases = (
+				S10001 /* Sources */,
+				F10001 /* Frameworks */,
+				R10001 /* Resources */,
+				H10001 /* Copy Whisper model */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				Y10001 /* PBXTargetDependency */,
+			);
+			name = Um;
+			packageProductDependencies = (
+				D10001 /* SwiftWhisper */,
+			);
+			productName = Um;
+			productReference = P10001 /* Um.app */;
+			productType = "com.apple.product-type.application";
+		};
+		T10002 /* UmCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = L10003 /* Build configuration list for PBXNativeTarget "UmCore" */;
+			buildPhases = (
+				S10002 /* Sources */,
+				F10002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = UmCore;
+			productName = UmCore;
+			productReference = P10002 /* libUmCore.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		T10003 /* UmCoreTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = L10004 /* Build configuration list for PBXNativeTarget "UmCoreTests" */;
+			buildPhases = (
+				S10003 /* Sources */,
+				F10003 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				Y10002 /* PBXTargetDependency */,
+			);
+			name = UmCoreTests;
+			productName = UmCoreTests;
+			productReference = P10003 /* UmCoreTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		P10000 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				ORGANIZATIONNAME = r3dbars;
+				TargetAttributes = {
+					T10001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					T10002 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					T10003 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = L10001 /* Build configuration list for PBXProject "Um" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = G10000;
+			packageReferences = (
+				E10001 /* XCRemoteSwiftPackageReference "SwiftWhisper" */,
+			);
+			productRefGroup = G10001 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				T10002 /* UmCore */,
+				T10001 /* Um */,
+				T10003 /* UmCoreTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		R10001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10016 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		H10001 /* Copy Whisper model */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/models/ggml-tiny.en.bin",
+			);
+			name = "Copy Whisper model";
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/ggml-tiny.en.bin",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\nMODEL=\"${SRCROOT}/models/ggml-tiny.en.bin\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ggml-tiny.en.bin\"\nif [ -f \"${MODEL}\" ]; then\n  mkdir -p \"$(dirname \"${DEST}\")\"\n  cp -f \"${MODEL}\" \"${DEST}\"\n  echo \"Copied Whisper model into the app bundle\"\nelse\n  echo \"warning: ${MODEL} is missing. Run ./scripts/download-model.sh so Xcode Run can find the model.\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		S10001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10002 /* UmApp.swift in Sources */,
+				A10003 /* AppDelegate.swift in Sources */,
+				A10004 /* ListeningController.swift in Sources */,
+				A10005 /* SpeechManager.swift in Sources */,
+				A10006 /* WhisperManager.swift in Sources */,
+				A10007 /* FillerWordCounter.swift in Sources */,
+				A10008 /* MenuBarView.swift in Sources */,
+				A10009 /* SettingsView.swift in Sources */,
+				A10010 /* HistoryView.swift in Sources */,
+				A10011 /* SessionStore.swift in Sources */,
+				A10012 /* Preferences.swift in Sources */,
+				A10013 /* NotificationManager.swift in Sources */,
+				A10014 /* LaunchAtLoginHelper.swift in Sources */,
+				A10015 /* AppNotifications.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		S10002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10001 /* WordMatcher.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		S10003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10019 /* WordMatcherTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		Y10001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = T10002 /* UmCore */;
+			targetProxy = C10001 /* PBXContainerItemProxy */;
+		};
+		Y10002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = T10002 /* UmCore */;
+			targetProxy = C10002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		D20001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		D20002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		D20003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Um/Resources/Um.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Um/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.r3dbars.um;
+				PRODUCT_NAME = Um;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		D20004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Um/Resources/Um.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Um/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.r3dbars.um;
+				PRODUCT_NAME = Um;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		D20005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGNING_ALLOWED = NO;
+				DEFINES_MODULE = YES;
+				EXECUTABLE_PREFIX = lib;
+				MACH_O_TYPE = staticlib;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_MODULE_NAME = UmCore;
+				PRODUCT_NAME = UmCore;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		D20006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGNING_ALLOWED = NO;
+				DEFINES_MODULE = YES;
+				EXECUTABLE_PREFIX = lib;
+				MACH_O_TYPE = staticlib;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_MODULE_NAME = UmCore;
+				PRODUCT_NAME = UmCore;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		D20007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.r3dbars.um.tests;
+				PRODUCT_NAME = UmCoreTests;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		D20008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.r3dbars.um.tests;
+				PRODUCT_NAME = UmCoreTests;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		L10001 /* Build configuration list for PBXProject "Um" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D20001 /* Debug */,
+				D20002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		L10002 /* Build configuration list for PBXNativeTarget "Um" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D20003 /* Debug */,
+				D20004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		L10003 /* Build configuration list for PBXNativeTarget "UmCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D20005 /* Debug */,
+				D20006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		L10004 /* Build configuration list for PBXNativeTarget "UmCoreTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D20007 /* Debug */,
+				D20008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E10001 /* XCRemoteSwiftPackageReference "SwiftWhisper" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/exPHAT/SwiftWhisper.git";
+			requirement = {
+				kind = revision;
+				revision = c340197966ebd264f3135d3955874b40f8ed58bc;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D10001 /* SwiftWhisper */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E10001 /* XCRemoteSwiftPackageReference "SwiftWhisper" */;
+			productName = SwiftWhisper;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = P10000 /* Project object */;
+}

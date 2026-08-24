@@ -189,11 +189,9 @@ struct HistoryView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .contentShape(Rectangle())
-        .swipeActions(edge: .trailing) {
-            Button(role: .destructive) {
+        .contextMenu {
+            Button("Delete Session", role: .destructive) {
                 store.deleteSession(session)
-            } label: {
-                Label("Delete", systemImage: "trash")
             }
         }
     }

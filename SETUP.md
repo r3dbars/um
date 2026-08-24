@@ -1,106 +1,50 @@
-# Setting Up Um in Xcode
+# Building Um
 
-All source code is written and ready. This guide walks you through creating the Xcode project and wiring it up. Takes ~5 minutes.
+You do not need to create an Xcode project by hand. This repo already has one.
 
-## Requirements
+## End users
 
-- macOS 13.0+
-- Xcode 15+
+Download the DMG from [Releases](https://github.com/r3dbars/um/releases) and drag Um into Applications. See the [README](README.md#install).
 
----
+## Developers (Xcode)
 
-## Step 1 — Create the Xcode Project
+1. macOS 13+ and Xcode 15+
+2. `./scripts/download-model.sh` — fetches `models/ggml-tiny.en.bin` (~75 MB, gitignored)
+3. `open Um.xcodeproj`
+4. Select the **Um** scheme and press **⌘R**
 
-1. Open Xcode → **File > New > Project**
-2. Select **macOS → App**
-3. Configure:
-   - **Product Name:** `Um`
-   - **Bundle Identifier:** `com.r3dbars.um`
-   - **Interface:** `SwiftUI`
-   - **Life Cycle:** `SwiftUI App`
-   - **Language:** `Swift`
-4. Save into this repo directory (so the `Um/` folder sits next to `README.md`)
+The app appears only in the menu bar (no Dock icon). Grant microphone access when asked.
 
----
+The Xcode target copies `models/ggml-tiny.en.bin` into the app bundle when that file exists. Without it, Um falls back to Apple Speech and may miss *um* / *uh*.
 
-## Step 2 — Replace Generated Files
+## Developers (SwiftPM)
 
-Delete these Xcode-generated files from the project navigator:
-- `ContentView.swift`
-- `UmApp.swift` (the generated one — you'll add ours)
+```bash
+./scripts/download-model.sh
+swift build
+swift test
+.build/debug/Um
+```
 
----
+SwiftPM is the same sources. The packaged `.app` / DMG path is `scripts/package-app.sh` + `scripts/create-dmg.sh` (macOS only).
 
-## Step 3 — Add Source Files
+## Signing
 
-Drag all files from `Um/Sources/Um/` into the Xcode project:
-- `UmApp.swift`
-- `AppDelegate.swift`
-- `SpeechManager.swift`
-- `FillerWordCounter.swift`
-- `MenuBarView.swift`
-- `SettingsView.swift`
-- `HistoryView.swift`
-- `SessionStore.swift`
-- `Preferences.swift`
-- `NotificationManager.swift`
-- `LaunchAtLoginHelper.swift`
-
-Make sure **"Copy items if needed"** is unchecked (they're already in the right place).
-
----
-
-## Step 4 — Configure Info.plist
-
-1. In Xcode, click your project in the navigator → select the **Um** target → **Info** tab
-2. Add these keys:
-
-| Key | Type | Value |
-|-----|------|-------|
-| `LSUIElement` | Boolean | YES |
-| `NSMicrophoneUsageDescription` | String | Um listens to your microphone to count filler words in real time. Audio is processed entirely on your Mac and never sent anywhere. |
-| `NSSpeechRecognitionUsageDescription` | String | Um uses on-device speech recognition to detect filler words. Nothing leaves your Mac. |
-
-Alternatively: replace the generated `Info.plist` with `Um/Resources/Info.plist`.
-
----
-
-## Step 5 — Configure Signing & Entitlements
-
-1. **Signing & Capabilities** tab → set your Apple Developer team
-2. Add a new **Entitlements** file or replace with `Um/Resources/Um.entitlements`
-3. Ensure these entitlements are present:
-   - `com.apple.security.device.microphone` = YES
-   - `com.apple.security.device.audio-input` = YES
-
----
-
-## Step 6 — Build & Run
-
-Hit **⌘R**. Um will appear in your menu bar with a speech bubble icon and count. Click it to open the popover, hit Start, and start talking.
-
----
+Local and CI builds are **ad-hoc signed**. That is enough to run on your own Mac after right-click → Open. A Developer ID + notarization would be required for a Gatekeeper-clean download.
 
 ## Architecture
 
 ```
-UmApp.swift              — @main entry point, SwiftUI lifecycle
-AppDelegate.swift        — NSStatusItem (menu bar icon + count), popover management
-SpeechManager.swift      — SFSpeechRecognizer wrapper, on-device recognition, seamless restart
-FillerWordCounter.swift  — Word counting, session tracking, rate calculation
-MenuBarView.swift        — Main SwiftUI popover UI with navigation to Settings & History
-SettingsView.swift       — Custom word list editor, notification threshold, launch at login
-HistoryView.swift        — Past session list with averages and rate trends
-SessionStore.swift       — JSON persistence to ~/Library/Application Support/Um/
-Preferences.swift        — UserDefaults-backed settings with word list sync
-NotificationManager.swift — Threshold alerts via UserNotifications
-LaunchAtLoginHelper.swift — SMAppService wrapper for macOS 13+
+UmApp.swift                 @main, menu-bar-only SwiftUI app
+AppDelegate.swift           NSStatusItem, popover, right-click menu
+ListeningController.swift   Whisper first, Apple Speech fallback
+WhisperManager.swift        Local whisper.cpp transcription
+SpeechManager.swift         SFSpeechRecognizer fallback
+WordMatcher.swift           Word-boundary counting (UmCore)
+FillerWordCounter.swift     Session totals and rate
+MenuBarView.swift           Popover: count, onboarding, controls
+SettingsView.swift          Word list, alerts, launch at login
+HistoryView.swift           Session list and trend
+SessionStore.swift          ~/Library/Application Support/Um/sessions.json
+Preferences.swift           UserDefaults
 ```
-
-**Key design decisions:**
-- `requiresOnDeviceRecognition = true` — audio never leaves the Mac
-- Rolling transcript delta tracking — only processes new words, not the full cumulative transcript on every update
-- Seamless restart — audio engine stays running across 60s segment boundaries, only the recognition task restarts
-- Word-boundary regex — "like" won't match inside "likewise"
-- Session auto-save — sessions 5+ seconds are automatically saved to history on stop
-- Preferences sync — custom word list changes take effect on next session start
