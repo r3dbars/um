@@ -1,10 +1,15 @@
 #!/bin/bash
-# One-command build & run for Um
-set -e
+# Quick debug loop: model + SwiftPM debug build + launch.
+set -euo pipefail
+cd "$(dirname "$0")"
 
-echo "Building Um..."
-swift build 2>&1
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  echo "Um is a Mac app. Build it on macOS (or use the GitHub Actions Release workflow)."
+  exit 1
+fi
 
-echo "Launching Um..."
+./scripts/download-model.sh
+echo "Building Um (debug)..."
+swift build
+echo "Launching Um — look for the bubble in the menu bar."
 .build/debug/Um &
-echo "Um is running in your menu bar!"

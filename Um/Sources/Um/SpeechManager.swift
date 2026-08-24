@@ -3,7 +3,7 @@ import AVFoundation
 import Combine
 import os
 
-private let logger = Logger(subsystem: "com.um.app", category: "SpeechManager")
+private let logger = Logger(subsystem: "com.r3dbars.um", category: "SpeechManager")
 
 class SpeechManager: NSObject, ObservableObject {
     static let shared = SpeechManager()
@@ -51,7 +51,11 @@ class SpeechManager: NSObject, ObservableObject {
             logger.notice("Not authorized, requesting permissions")
             requestPermissions { [weak self] granted in
                 logger.info("Permission result: granted=\(granted)")
-                if granted { self?.startListening() }
+                if granted {
+                    self?.startListening()
+                } else {
+                    self?.errorMessage = "Speech recognition permission is required for the Apple Speech fallback."
+                }
             }
             return
         }

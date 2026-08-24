@@ -12,6 +12,7 @@ class Preferences: ObservableObject {
         static let notificationsEnabled = "um_notificationsEnabled"
         static let notificationThreshold = "um_notificationThreshold"
         static let launchAtLogin = "um_launchAtLogin"
+        static let hasCompletedOnboarding = "um_hasCompletedOnboarding"
     }
 
     // MARK: - Custom word list
@@ -48,6 +49,10 @@ class Preferences: ObservableObject {
         }
     }
 
+    @Published var hasCompletedOnboarding: Bool {
+        didSet { defaults.set(hasCompletedOnboarding, forKey: Keys.hasCompletedOnboarding) }
+    }
+
     // MARK: - Init
 
     init() {
@@ -60,5 +65,6 @@ class Preferences: ObservableObject {
         let threshold = defaults.integer(forKey: Keys.notificationThreshold)
         notificationThreshold = threshold > 0 ? threshold : 20
         launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
+        hasCompletedOnboarding = defaults.bool(forKey: Keys.hasCompletedOnboarding)
     }
 }

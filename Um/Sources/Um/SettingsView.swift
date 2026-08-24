@@ -16,6 +16,8 @@ struct SettingsView: View {
             generalSection
             Divider()
             resetSection
+            Divider()
+            aboutSection
         }
         .frame(width: 280)
     }
@@ -174,6 +176,18 @@ struct SettingsView: View {
         }
     }
 
+    private var aboutSection: some View {
+        VStack(spacing: 4) {
+            Text("Um \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")")
+                .font(.system(size: 11, weight: .medium))
+            Text("On-device. Audio never leaves this Mac.")
+                .font(.system(size: 10))
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+    }
+
     // MARK: - Helpers
 
     private func addWord() {
@@ -187,8 +201,4 @@ struct SettingsView: View {
         }
         newWord = ""
     }
-}
-
-extension Notification.Name {
-    static let navigateBack = Notification.Name("um.navigateBack")
 }
