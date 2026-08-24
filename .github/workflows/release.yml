@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without a leading v (default 1.0.0). Ignored when the run is a v* tag."
+        required: false
+        default: "1.0.0"
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Package and publish
+    runs-on: macos-15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcode-select -p
+          xcodebuild -version
+          swift --version
+
+      - name: Resolve version
+        id: version
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            raw="${GITHUB_REF_NAME}"
+          else
+            raw="${{ github.event.inputs.version }}"
+            raw="${raw:-1.0.0}"
+          fi
+          version="${raw#v}"
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$ ]]; then
+            echo "error: version '${version}' is not a dotted version like 1.0.0" >&2
+            exit 1
+          fi
+          tag="v${version}"
+          {
+            echo "version=${version}"
+            echo "tag=${tag}"
+            echo "dmg=dist/Um-${version}.dmg"
+          } >> "${GITHUB_OUTPUT}"
+          echo "VERSION=${version}" >> "${GITHUB_ENV}"
+          echo "BUILD=1" >> "${GITHUB_ENV}"
+          echo "Resolved version=${version} tag=${tag}"
+
+      - name: Make packaging scripts executable
+        run: chmod +x scripts/download-model.sh scripts/package-app.sh scripts/create-dmg.sh
+
+      - name: Download Whisper model
+        run: ./scripts/download-model.sh
+
+      - name: Package Um.app
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: "1"
+          MACOSX_DEPLOYMENT_TARGET: "13.0"
+        run: ./scripts/package-app.sh
+
+      - name: Create DMG
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: ./scripts/create-dmg.sh dist/Um.app
+
+      - name: Upload GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+          DMG: ${{ steps.version.outputs.dmg }}
+        run: |
+          set -euo pipefail
+          if [[ ! -f "${DMG}" ]]; then
+            echo "error: expected ${DMG} after create-dmg.sh" >&2
+            exit 1
+          fi
+
+          notes="$(cat <<EOF
+          ## Um ${VERSION}
+
+          macOS 13+ menu bar app. Audio is processed on your Mac only.
+
+          ### Install
+          1. Download \`Um-${VERSION}.dmg\`.
+          2. Open the disk image and drag **Um** into **Applications**.
+          3. **First launch:** right-click \`Um.app\` → **Open** → **Open**.
+
+          This release is **ad-hoc signed** (no Apple Developer ID in CI). Gatekeeper will warn that the developer cannot be verified until you use **Open** from the context menu once. After that, Spotlight and regular double-click work.
+
+          If macOS still blocks the app after download, remove the quarantine flag:
+
+          \`\`\`bash
+          xattr -dr com.apple.quarantine /Applications/Um.app
+          \`\`\`
+
+          The Whisper model (\`ggml-tiny.en.bin\`) is bundled at \`Um.app/Contents/Resources/ggml-tiny.en.bin\`.
+          EOF
+          )"
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists; uploading ${DMG}"
+            gh release upload "${TAG}" "${DMG}" --clobber
+          else
+            echo "Creating release ${TAG}"
+            gh release create "${TAG}" "${DMG}" \
+              --title "Um ${VERSION}" \
+              --notes "${notes}" \
+              --target "${GITHUB_SHA}"
+          fi
