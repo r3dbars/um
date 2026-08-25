@@ -1,6 +1,7 @@
 import AVFoundation
 import Combine
 import SwiftWhisper
+import UmCore
 import os
 
 private let logger = Logger(subsystem: "com.r3dbars.um", category: "WhisperManager")
@@ -114,13 +115,11 @@ final class WhisperManager: NSObject, ObservableObject {
     // MARK: - Start / Stop
 
     func startListening() {
-        guard whisper != nil else {
+        if whisper == nil {
             loadModel()
-            guard whisper != nil else {
-                logger.error("Cannot start — Whisper model not loaded")
-                return
-            }
-            startListening()
+        }
+        guard whisper != nil else {
+            logger.error("Cannot start — Whisper model not loaded")
             return
         }
         guard !audioEngine.isRunning else {
@@ -271,7 +270,7 @@ final class WhisperManager: NSObject, ObservableObject {
             do {
                 let segments = try await whisper.transcribe(audioFrames: samples)
                 let transcript = segments.map(\.text).joined(separator: " ").trimmingCharacters(in: .whitespaces)
-                let cleaned = Self.cleanedTranscript(transcript)
+                let cleaned = TranscriptCleaning.cleaned(transcript)
                 if !cleaned.isEmpty {
                     logger.info("Whisper transcript: \"\(cleaned, privacy: .public)\"")
                     await MainActor.run {
@@ -282,19 +281,5 @@ final class WhisperManager: NSObject, ObservableObject {
                 logger.error("Transcription error: \(error.localizedDescription, privacy: .public)")
             }
         }
-    }
-
-    static func cleanedTranscript(_ transcript: String) -> String {
-        var cleaned = transcript
-            .replacingOccurrences(of: "[BLANK_AUDIO]", with: "")
-            .replacingOccurrences(of: "(silence)", with: "")
-        if let regex = try? NSRegularExpression(pattern: "\\([^)]*\\)|\\[[^\\]]*\\]") {
-            cleaned = regex.stringByReplacingMatches(
-                in: cleaned,
-                range: NSRange(cleaned.startIndex..., in: cleaned),
-                withTemplate: ""
-            )
-        }
-        return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

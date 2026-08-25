@@ -27,6 +27,13 @@
 		A10018 /* SwiftWhisper in Frameworks */ = {isa = PBXBuildFile; productRef = D10001 /* SwiftWhisper */; };
 		A10019 /* WordMatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10017 /* WordMatcherTests.swift */; };
 		A10020 /* libUmCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = P10002 /* libUmCore.a */; };
+		A10021 /* TranscriptCleaning.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10030 /* TranscriptCleaning.swift */; };
+		A10022 /* TranscriptDelta.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10031 /* TranscriptDelta.swift */; };
+		A10023 /* SessionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10032 /* SessionRecord.swift */; };
+		A10024 /* SessionArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10033 /* SessionArchive.swift */; };
+		A10025 /* TranscriptCleaningTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10034 /* TranscriptCleaningTests.swift */; };
+		A10026 /* TranscriptDeltaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10035 /* TranscriptDeltaTests.swift */; };
+		A10027 /* SessionArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10036 /* SessionArchiveTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +71,13 @@
 		B10015 /* AppNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotifications.swift; sourceTree = "<group>"; };
 		B10016 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10017 /* WordMatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMatcherTests.swift; sourceTree = "<group>"; };
+		B10030 /* TranscriptCleaning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptCleaning.swift; sourceTree = "<group>"; };
+		B10031 /* TranscriptDelta.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptDelta.swift; sourceTree = "<group>"; };
+		B10032 /* SessionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRecord.swift; sourceTree = "<group>"; };
+		B10033 /* SessionArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionArchive.swift; sourceTree = "<group>"; };
+		B10034 /* TranscriptCleaningTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptCleaningTests.swift; sourceTree = "<group>"; };
+		B10035 /* TranscriptDeltaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptDeltaTests.swift; sourceTree = "<group>"; };
+		B10036 /* SessionArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionArchiveTests.swift; sourceTree = "<group>"; };
 		B10018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B10019 /* Um.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Um.entitlements; sourceTree = "<group>"; };
 		P10001 /* Um.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Um.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -140,6 +154,10 @@
 			isa = PBXGroup;
 			children = (
 				B10001 /* WordMatcher.swift */,
+				B10030 /* TranscriptCleaning.swift */,
+				B10031 /* TranscriptDelta.swift */,
+				B10032 /* SessionRecord.swift */,
+				B10033 /* SessionArchive.swift */,
 			);
 			path = UmCore;
 			sourceTree = "<group>";
@@ -179,6 +197,9 @@
 			isa = PBXGroup;
 			children = (
 				B10017 /* WordMatcherTests.swift */,
+				B10034 /* TranscriptCleaningTests.swift */,
+				B10035 /* TranscriptDeltaTests.swift */,
+				B10036 /* SessionArchiveTests.swift */,
 			);
 			name = Tests;
 			path = Tests/UmCoreTests;
@@ -345,6 +366,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10001 /* WordMatcher.swift in Sources */,
+				A10021 /* TranscriptCleaning.swift in Sources */,
+				A10022 /* TranscriptDelta.swift in Sources */,
+				A10023 /* SessionRecord.swift in Sources */,
+				A10024 /* SessionArchive.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -353,6 +378,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10019 /* WordMatcherTests.swift in Sources */,
+				A10025 /* TranscriptCleaningTests.swift in Sources */,
+				A10026 /* TranscriptDeltaTests.swift in Sources */,
+				A10027 /* SessionArchiveTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -402,7 +430,9 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ARCHS = "arm64 x86_64";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 5.0;
@@ -428,7 +458,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.r3dbars.um;
 				PRODUCT_NAME = Um;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -455,7 +485,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.r3dbars.um;
 				PRODUCT_NAME = Um;
 				SWIFT_EMIT_LOC_STRINGS = YES;

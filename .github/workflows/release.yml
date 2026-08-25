@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version without a leading v (default 1.0.0). Ignored when the run is a v* tag."
+        description: "Version without a leading v (default 1.0.1). Ignored when the run is a v* tag."
         required: false
-        default: "1.0.0"
+        default: "1.0.1"
         type: string
 
 permissions:
@@ -38,7 +38,7 @@ jobs:
             raw="${GITHUB_REF_NAME}"
           else
             raw="${{ github.event.inputs.version }}"
-            raw="${raw:-1.0.0}"
+            raw="${raw:-1.0.1}"
           fi
           version="${raw#v}"
           if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$ ]]; then
