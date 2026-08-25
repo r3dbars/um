@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.1
+
 - Extract transcript cleanup, cumulative-transcript deltas, and session file I/O into `UmCore` with unit tests
 - Document the audio path in `docs/ARCHITECTURE.md`
 - GitHub issue and branch cleanup so `main` is the only open branch

@@ -38,7 +38,7 @@ The GitHub build is not Developer ID signed, so Gatekeeper warns once.
 2. Allow the microphone when macOS asks.
 3. If it is still blocked: `xattr -dr com.apple.quarantine /Applications/Um.app`
 
-After that, Spotlight and a normal double-click work. The current release disk image is Apple Silicon; the next tag is a universal `arm64` + `x86_64` build.
+After that, Spotlight and a normal double-click work. The latest release is a universal `arm64` + `x86_64` build.
 
 </details>
 
@@ -69,7 +69,7 @@ open Um.xcodeproj               # ⌘R
 
 ```bash
 ./scripts/package-app.sh       # → dist/Um.app  (universal)
-./scripts/create-dmg.sh        # → dist/Um-1.0.0.dmg
+./scripts/create-dmg.sh        # → dist/Um-1.0.1.dmg
 ```
 
 `./run.sh` is the debug loop. How counting works is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
