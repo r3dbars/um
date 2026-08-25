@@ -6,6 +6,7 @@
 - Document the audio path in `docs/ARCHITECTURE.md`
 - GitHub issue and branch cleanup so `main` is the only open branch
 - Package as a universal `arm64` + `x86_64` binary; add `scripts/notarize.sh` for Developer ID builds
+- Product-shot README: hero image first, download badge, first-launch notes folded away
 
 ## 1.0.0
 
