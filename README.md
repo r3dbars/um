@@ -21,11 +21,11 @@ Most people have no idea how often they say *um*, *uh*, *like*, or *you know*. U
 
 **Requires macOS 13 or later.**
 
-1. Download **`Um-1.0.0.dmg`** from [Releases](https://github.com/r3dbars/um/releases).
+1. Download the latest **`Um-*.dmg`** from [Releases](https://github.com/r3dbars/um/releases/latest).
 2. Open the disk image and drag **Um** into **Applications**.
 3. **First launch:** right-click `Um.app` → **Open** → **Open**.
 
-macOS Gatekeeper warns on the first launch because the GitHub build is ad-hoc signed (no Apple Developer ID in CI). After you use **Open** once, Spotlight and a normal double-click work.
+macOS Gatekeeper warns on the first launch because the GitHub build is ad-hoc signed (no Apple Developer ID in CI). After you use **Open** once, Spotlight and a normal double-click work. The v1.0.0 disk image is Apple Silicon; packaging now produces a universal `arm64` + `x86_64` binary for the next tag.
 
 If the app is still blocked after download:
 
@@ -36,19 +36,19 @@ xattr -dr com.apple.quarantine /Applications/Um.app
 Then click the menu bar bubble. Allow the microphone when macOS asks. Um starts listening on its own.
 
 <p align="center">
-  <img src="docs/menubar.svg" width="560" alt="Um in the menu bar, showing a live filler-word count">
+  <img src="docs/popover.svg" width="560" alt="Um menu bar extra and popover showing a live filler-word count">
 </p>
 
 ## What you get
 
-| | |
+| Feature | What it does |
 | --- | --- |
-| **Menu bar count** | A speech-bubble icon and a number. It flashes when a filler word lands. |
-| **Popover** | Live totals per word, session length, and rate per minute. |
-| **Custom words** | Add your own tics in Settings. |
-| **History** | Past sessions with a rate trend so you can see if you are improving. |
-| **Notifications** | Optional alert every N filler words. |
-| **Launch at login** | Keep it running without thinking about it. |
+| Menu bar count | A speech-bubble icon and a number. It flashes when a filler word lands. |
+| Popover | Live totals per word, session length, and rate per minute. |
+| Custom words | Add your own tics in Settings. |
+| History | Past sessions with a rate trend so you can see if you are improving. |
+| Notifications | Optional alert every N filler words. |
+| Launch at login | Keep it running without thinking about it. |
 
 Default words: `um`, `uh`, `like`, `you know`, `basically`, `literally`, `sort of`, `kind of`, `right`, `so`.
 
@@ -96,6 +96,8 @@ Menu bar  ──►  ListeningController
 ```
 
 Matching is word-boundary safe: *like* does not count inside *likewise*.
+
+A longer walkthrough of the audio path and what stays on disk is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Requirements
 

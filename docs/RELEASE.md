@@ -1,34 +1,41 @@
 # Releasing Um
 
-## 1. Make the GitHub repo public
+The repo is public. Ship from `main` after a pull request — the branch is protected and **Build** must pass.
 
-The code can be public; the current GitHub repo starts private. In the GitHub UI:
+## DMG
 
-1. Open https://github.com/r3dbars/um/settings
-2. **General → Danger Zone → Change repository visibility → Public**
-3. Add topics if you want: `macos`, `menubar`, `swift`, `whisper`, `privacy`
-
-Set the repository description to:
-
-> On-device filler word counter for Mac. Real-time. Private. Free.
-
-## 2. Ship a DMG
-
-GitHub Actions builds on `macos-15`, bundles the Whisper model, ad-hoc signs `Um.app`, and attaches `Um-x.y.z.dmg` to a GitHub Release.
-
-From the default branch after merge:
+GitHub Actions on `macos-15` downloads the Whisper model, builds a universal `arm64` + `x86_64` binary, ad-hoc signs `Um.app` (no Developer ID in CI), and attaches `Um-x.y.z.dmg` to a GitHub Release.
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.0.1
+git push origin v1.0.1
 ```
 
-Or run the **Release** workflow from the Actions tab (`workflow_dispatch`).
+Or run the **Release** workflow from the Actions tab.
 
-## 3. First-run note for users
+Locally:
 
-The CI app is not Developer ID signed. README already documents right-click → Open. A paid Apple Developer account plus notarization would remove that step.
+```bash
+./scripts/download-model.sh
+./scripts/package-app.sh
+./scripts/create-dmg.sh
+```
 
-## 4. Version bumps
+## First-run note
+
+CI builds are ad-hoc signed. README documents right-click → Open.
+
+To ship a Gatekeeper-clean download you need a **Developer ID Application** certificate (Apple Development is not enough) plus:
+
+```bash
+xcrun notarytool store-credentials um-notarize
+./scripts/package-app.sh      # signs with Developer ID when it is in the keychain
+./scripts/notarize.sh         # submits to Apple and staples
+./scripts/create-dmg.sh
+```
+
+`package-app.sh` now emits a universal binary (`arm64` + `x86_64`).
+
+## Version bumps
 
 Update `CFBundleShortVersionString` in `Um/Resources/Info.plist`, `MARKETING_VERSION` in `Um.xcodeproj/project.pbxproj`, and [CHANGELOG.md](../CHANGELOG.md). The release workflow reads the version from the `v*` tag.

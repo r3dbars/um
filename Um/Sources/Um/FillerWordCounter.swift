@@ -72,15 +72,10 @@ final class FillerWordCounter: ObservableObject {
     }
 
     func processTranscript(_ transcript: String) {
-        guard !transcript.isEmpty else { return }
-
-        let newPortion: String
-        if transcript.count > lastProcessedTranscript.count {
-            let start = transcript.index(transcript.startIndex, offsetBy: lastProcessedTranscript.count)
-            newPortion = String(transcript[start...])
-        } else {
-            newPortion = transcript
-        }
+        let newPortion = TranscriptDelta.newPortion(
+            in: transcript,
+            previouslyProcessed: lastProcessedTranscript
+        )
         lastProcessedTranscript = transcript
         guard !newPortion.isEmpty else { return }
         applyHits(WordMatcher.counts(in: newPortion, words: trackedWords))

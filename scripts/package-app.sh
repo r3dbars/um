@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# Build Um and assemble dist/Um.app with the Whisper model and an ad-hoc signature.
+# Build a universal (arm64 + x86_64) Um.app with the Whisper model.
 #
 # Usage:
 #   ./scripts/package-app.sh
 #
 # Environment:
-#   VERSION   CFBundleShortVersionString (default: 1.0.0; leading "v" is stripped)
-#   BUILD     CFBundleVersion            (default: 1)
+#   VERSION            CFBundleShortVersionString (default: 1.0.0; leading "v" is stripped)
+#   BUILD              CFBundleVersion            (default: 1)
+#   SIGNING_IDENTITY   codesign identity; default is Developer ID Application if
+#                      present in the keychain, otherwise ad-hoc ("-")
 #
-# The resulting app is ad-hoc signed (codesign -s -) with Um.entitlements.
-# There is no Developer ID in CI, so Gatekeeper will still warn on first launch.
-# Users should right-click Um.app → Open the first time.
+# CI has no Developer ID, so GitHub builds stay ad-hoc. Local machines with a
+# Developer ID cert sign for notarization via scripts/notarize.sh.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,6 +34,7 @@ MIN_MODEL_BYTES=$((10 * 1024 * 1024))
 
 BINARY=""
 BIN_DIR=""
+SIGNED_IDENTITY="-"
 
 file_size() {
   local path="$1"
@@ -71,12 +73,14 @@ build_with_xcodebuild() {
   local project="$1"
   local derived="${ROOT}/.build/DerivedData"
 
-  echo "    xcodebuild -project ${project} -scheme ${APP_NAME} -configuration Release"
+  echo "    xcodebuild -project ${project} -scheme ${APP_NAME} -configuration Release (arm64 + x86_64)"
   xcodebuild \
     -project "${project}" \
     -scheme "${APP_NAME}" \
     -configuration Release \
     -derivedDataPath "${derived}" \
+    ARCHS="arm64 x86_64" \
+    ONLY_ACTIVE_ARCH=NO \
     MACOSX_DEPLOYMENT_TARGET=13.0 \
     CODE_SIGN_IDENTITY="-" \
     CODE_SIGNING_ALLOWED=YES \
@@ -109,10 +113,10 @@ build_with_xcodebuild() {
 }
 
 build_with_swift() {
-  echo "    swift build -c release --product ${APP_NAME}"
+  echo "    swift build -c release --product ${APP_NAME} --arch arm64 --arch x86_64"
   export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-13.0}"
-  swift build -c release --product "${APP_NAME}"
-  BIN_DIR="$(swift build -c release --show-bin-path --product "${APP_NAME}")"
+  swift build -c release --product "${APP_NAME}" --arch arm64 --arch x86_64
+  BIN_DIR="$(swift build -c release --show-bin-path --product "${APP_NAME}" --arch arm64 --arch x86_64)"
   BINARY="${BIN_DIR}/${APP_NAME}"
   if [[ ! -f "${BINARY}" ]]; then
     echo "error: swift build finished but ${BINARY} is missing" >&2
@@ -283,18 +287,39 @@ assemble_bundle() {
   copy_icon_if_present
 }
 
-codesign_adhoc() {
-  echo "==> Ad-hoc codesigning (no Developer ID available)"
-  echo "    Gatekeeper will show an unidentified-developer warning."
-  echo "    First launch: right-click Um.app → Open → Open."
+resolve_signing_identity() {
+  if [[ -n "${SIGNING_IDENTITY:-}" ]]; then
+    echo "${SIGNING_IDENTITY}"
+    return
+  fi
+  local name
+  name="$(security find-identity -v -p codesigning 2>/dev/null | awk -F'"' '/Developer ID Application/ { print $2; exit }' || true)"
+  if [[ -n "${name}" ]]; then
+    echo "${name}"
+    return
+  fi
+  echo "-"
+}
 
+codesign_app() {
   if [[ ! -f "${ENTITLEMENTS}" ]]; then
     echo "error: missing entitlements file ${ENTITLEMENTS}" >&2
     exit 1
   fi
 
-  # "-" is the ad-hoc identity. Do not use --options runtime; that is for Developer ID.
-  codesign --force --deep --sign - --entitlements "${ENTITLEMENTS}" "${APP_DIR}"
+  local identity
+  identity="$(resolve_signing_identity)"
+  SIGNED_IDENTITY="${identity}"
+
+  if [[ "${identity}" == "-" ]]; then
+    echo "==> Ad-hoc codesigning (no Developer ID Application in the keychain)"
+    echo "    Gatekeeper will show an unidentified-developer warning."
+    echo "    First launch: right-click Um.app → Open → Open."
+    codesign --force --deep --sign - --entitlements "${ENTITLEMENTS}" "${APP_DIR}"
+  else
+    echo "==> Signing with Developer ID: ${identity}"
+    codesign --force --deep --options runtime --timestamp --sign "${identity}" --entitlements "${ENTITLEMENTS}" "${APP_DIR}"
+  fi
   chmod +x "${MACOS_DIR}/${APP_NAME}"
 
   echo "    Signature:"
@@ -308,7 +333,7 @@ print_summary() {
   echo "    Bundle:   ${BUNDLE_ID}"
   echo "    Binary:   ${MACOS_DIR}/${APP_NAME}"
   echo "    Model:    ${RESOURCES_DIR}/ggml-tiny.en.bin"
-  echo "    Signing:  ad-hoc (codesign -s -) with ${ENTITLEMENTS}"
+  echo "    Signing:  ${SIGNED_IDENTITY} with ${ENTITLEMENTS}"
   du -sh "${APP_DIR}" || true
 }
 
@@ -318,7 +343,7 @@ main() {
   ensure_model
   build_binary
   assemble_bundle
-  codesign_adhoc
+  codesign_app
   print_summary
 }
 
