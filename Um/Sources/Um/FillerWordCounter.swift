@@ -47,12 +47,16 @@ final class FillerWordCounter: ObservableObject {
             guard let self, let start = self.sessionStartTime else { return }
             self.sessionDuration = Date().timeIntervalSince(start)
         }
+        if let sessionTimer {
+            RunLoop.main.add(sessionTimer, forMode: .common)
+        }
         NotificationManager.shared.resetTracking()
     }
 
     func stopSession() {
         guard isActive else { return }
-        let duration = sessionDuration
+        let duration = sessionStartTime.map { Date().timeIntervalSince($0) } ?? sessionDuration
+        sessionDuration = duration
         let shouldPersist = lifecycle.stopSession(duration: duration)
         isActive = false
         sessionTimer?.invalidate()
@@ -90,7 +94,7 @@ final class FillerWordCounter: ObservableObject {
     }
 
     private func applyHits(_ hits: [String: Int]) {
-        guard !hits.isEmpty else { return }
+        guard isActive, !hits.isEmpty else { return }
         var added = 0
         for (word, count) in hits {
             counts[word, default: 0] += count
