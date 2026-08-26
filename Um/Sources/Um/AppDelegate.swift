@@ -29,6 +29,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         listening.startListening()
     }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        listening.stopListening()
+    }
+
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         guard let button = statusItem.button else { return }
