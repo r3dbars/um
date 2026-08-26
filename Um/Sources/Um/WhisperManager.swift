@@ -25,6 +25,8 @@ final class WhisperManager: NSObject, ObservableObject {
     private var audioBuffer: [Float] = []
     private let sampleRate: Double = 16_000
     private var transcribeTimer: Timer?
+    private var tapInstalled = false
+    private var startInFlight = false
 
     private let transcribeInterval: TimeInterval = 3.0
 
@@ -122,13 +124,15 @@ final class WhisperManager: NSObject, ObservableObject {
             logger.error("Cannot start — Whisper model not loaded")
             return
         }
-        guard !audioEngine.isRunning else {
+        guard !audioEngine.isRunning, !startInFlight else {
             logger.debug("Audio engine already running")
             return
         }
 
+        startInFlight = true
         requestMicrophoneAccess { [weak self] granted in
             guard let self else { return }
+            self.startInFlight = false
             if granted {
                 self.beginCapture()
             } else {
@@ -144,7 +148,10 @@ final class WhisperManager: NSObject, ObservableObject {
         if audioEngine.isRunning {
             audioEngine.stop()
         }
-        audioEngine.inputNode.removeTap(onBus: 0)
+        if tapInstalled {
+            audioEngine.inputNode.removeTap(onBus: 0)
+            tapInstalled = false
+        }
         transcribeBuffer()
         bufferLock.lock()
         audioBuffer.removeAll()
@@ -180,9 +187,14 @@ final class WhisperManager: NSObject, ObservableObject {
                 return
             }
 
+            if tapInstalled {
+                inputNode.removeTap(onBus: 0)
+                tapInstalled = false
+            }
             inputNode.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] buffer, _ in
                 self?.convertAndAppend(buffer: buffer, converter: converter, outputFormat: convertFormat)
             }
+            tapInstalled = true
 
             audioEngine.prepare()
             try audioEngine.start()
@@ -202,6 +214,10 @@ final class WhisperManager: NSObject, ObservableObject {
                 logger.info("Whisper capture started")
             }
         } catch {
+            if tapInstalled {
+                audioEngine.inputNode.removeTap(onBus: 0)
+                tapInstalled = false
+            }
             logger.error("Failed to start audio engine: \(error.localizedDescription)")
             DispatchQueue.main.async {
                 self.errorMessage = "Mic error: \(error.localizedDescription)"

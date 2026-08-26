@@ -9,16 +9,12 @@ public struct SessionArchive: Sendable {
         self.fileURL = fileURL
     }
 
-    public func load() -> [SessionRecord] {
+    public func load() throws -> [SessionRecord] {
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return [] }
-        do {
-            let data = try Data(contentsOf: fileURL)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            return try decoder.decode([SessionRecord].self, from: data)
-        } catch {
-            return []
-        }
+        let data = try Data(contentsOf: fileURL)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode([SessionRecord].self, from: data)
     }
 
     public func save(_ sessions: [SessionRecord]) throws {

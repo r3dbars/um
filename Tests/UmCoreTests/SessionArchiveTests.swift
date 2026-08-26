@@ -22,14 +22,19 @@ final class SessionArchiveTests: XCTestCase {
         ]
         let archive = SessionArchive(fileURL: fileURL)
         try archive.save(original)
-        let loaded = archive.load()
+        let loaded = try archive.load()
         XCTAssertEqual(loaded.count, 2)
         XCTAssertEqual(loaded[0].totalCount, 4)
         XCTAssertEqual(loaded[1].counts["uh"], 3)
     }
 
-    func testLoadMissingFileIsEmpty() {
-        XCTAssertEqual(SessionArchive(fileURL: fileURL).load(), [])
+    func testLoadMissingFileIsEmpty() throws {
+        XCTAssertEqual(try SessionArchive(fileURL: fileURL).load(), [])
+    }
+
+    func testCorruptFileThrowsInsteadOfEmpty() throws {
+        try Data("{not-json".utf8).write(to: fileURL)
+        XCTAssertThrowsError(try SessionArchive(fileURL: fileURL).load())
     }
 
     func testAverageAndTotalTime() {

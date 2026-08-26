@@ -21,6 +21,7 @@ final class ListeningController: ObservableObject {
     private let speech = SpeechManager.shared
     private let counter = FillerWordCounter.shared
     private var cancellables = Set<AnyCancellable>()
+    private var userWantsListening = false
 
     var usesWhisper: Bool { engine == .whisper }
 
@@ -36,6 +37,7 @@ final class ListeningController: ObservableObject {
     }
 
     func startListening() {
+        userWantsListening = true
         engine = whisper.isModelAvailable ? .whisper : .appleSpeech
         if engine == .whisper {
             speech.stopCapture()
@@ -47,6 +49,7 @@ final class ListeningController: ObservableObject {
     }
 
     func stopListening() {
+        userWantsListening = false
         whisper.stopCapture()
         speech.stopCapture()
         counter.stopSession()
@@ -58,8 +61,8 @@ final class ListeningController: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] whisperOn, speechOn in
                 guard let self else { return }
-                self.isListening = whisperOn || speechOn
-                if whisperOn || speechOn {
+                self.isListening = self.userWantsListening && (whisperOn || speechOn)
+                if self.userWantsListening && (whisperOn || speechOn) {
                     self.counter.startSession()
                 }
             }

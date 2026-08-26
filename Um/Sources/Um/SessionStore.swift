@@ -12,11 +12,18 @@ final class SessionStore: ObservableObject {
     @Published var sessions: [SessionRecord] = []
 
     private let archive: SessionArchive
+    private var historyUnreadable = false
 
     init(fileURL: URL? = nil) {
         let url = fileURL ?? Self.defaultFileURL()
         archive = SessionArchive(fileURL: url)
-        sessions = archive.load()
+        do {
+            sessions = try archive.load()
+        } catch {
+            historyUnreadable = true
+            sessions = []
+            logger.error("Session history is unreadable; refusing later overwrites: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     private static func defaultFileURL() -> URL {
@@ -27,6 +34,10 @@ final class SessionStore: ObservableObject {
     }
 
     func save() {
+        guard !historyUnreadable else {
+            logger.error("Refusing to overwrite unreadable session history")
+            return
+        }
         do {
             try archive.save(sessions)
         } catch {
