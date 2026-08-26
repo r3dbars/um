@@ -37,7 +37,6 @@ final class ListeningController: ObservableObject {
 
     func startListening() {
         engine = whisper.isModelAvailable ? .whisper : .appleSpeech
-        counter.startSession()
         if engine == .whisper {
             speech.stopCapture()
             whisper.startListening()
@@ -58,7 +57,11 @@ final class ListeningController: ObservableObject {
             .combineLatest(speech.$isListening)
             .receive(on: RunLoop.main)
             .sink { [weak self] whisperOn, speechOn in
-                self?.isListening = whisperOn || speechOn
+                guard let self else { return }
+                self.isListening = whisperOn || speechOn
+                if whisperOn || speechOn {
+                    self.counter.startSession()
+                }
             }
             .store(in: &cancellables)
 
