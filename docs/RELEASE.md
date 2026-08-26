@@ -4,7 +4,7 @@ The repo is public. Ship from `main` after a pull request — the branch is prot
 
 ## DMG
 
-GitHub Actions on `macos-15` downloads the Whisper model, builds a universal `arm64` + `x86_64` binary, ad-hoc signs `Um.app` (no Developer ID in CI), and attaches `Um-x.y.z.dmg` to a GitHub Release.
+GitHub Actions on `macos-15` downloads the Whisper model, builds a universal `arm64` + `x86_64` binary, and attaches `Um-x.y.z.dmg` to a GitHub Release. Local contributor builds are ad-hoc. Public `v*` releases should be Developer ID signed, hardened-runtime, and notarized with `scripts/notarize.sh` when the signing secrets are available.
 
 ```bash
 git tag v1.0.1

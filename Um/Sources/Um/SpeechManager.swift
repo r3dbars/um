@@ -70,8 +70,7 @@ class SpeechManager: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 self.isListening = true
                 self.errorMessage = nil
-                self.counter.startSession()
-                logger.info("Listening started successfully")
+                logger.info("Speech capture started")
             }
         } catch {
             logger.error("Failed to start: \(error.localizedDescription)")
@@ -81,7 +80,8 @@ class SpeechManager: NSObject, ObservableObject {
         }
     }
 
-    func stopListening() {
+    /// Stops the mic and recognizer only. Does not end the filler-word session.
+    func stopCapture() {
         audioEngine.stop()
         audioEngine.inputNode.removeTap(onBus: 0)
         request?.endAudio()
@@ -91,7 +91,6 @@ class SpeechManager: NSObject, ObservableObject {
         consecutiveNoSpeechRestarts = 0
         DispatchQueue.main.async {
             self.isListening = false
-            self.counter.stopSession()
         }
     }
 
@@ -148,7 +147,7 @@ class SpeechManager: NSObject, ObservableObject {
             consecutiveNoSpeechRestarts = 0
 
             let transcript = result.bestTranscription.formattedString
-            logger.info("Transcript: \"\(transcript, privacy: .public)\" isFinal=\(result.isFinal)")
+            logger.info("Recognition result isFinal=\(result.isFinal, privacy: .public)")
             DispatchQueue.main.async {
                 self.counter.processTranscript(transcript)
             }
@@ -230,7 +229,7 @@ extension SpeechManager: SFSpeechRecognizerDelegate {
         if !available && isListening {
             DispatchQueue.main.async {
                 self.errorMessage = "Speech recognition became unavailable."
-                self.stopListening()
+                ListeningController.shared.stopListening()
             }
         }
     }

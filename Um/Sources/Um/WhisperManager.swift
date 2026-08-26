@@ -43,7 +43,7 @@ final class WhisperManager: NSObject, ObservableObject {
             return
         }
 
-        logger.info("Loading model at \(url.path, privacy: .public)")
+        logger.info("Loading model at \(url.path, privacy: .private)")
         let params = WhisperParams(strategy: .greedy)
         params.language = .english
         params.no_context = true
@@ -91,7 +91,7 @@ final class WhisperManager: NSObject, ObservableObject {
 
         for url in candidates {
             if FileManager.default.fileExists(atPath: url.path) {
-                logger.info("Found model at \(url.path, privacy: .public)")
+                logger.info("Found model at \(url.path, privacy: .private)")
                 return url
             }
         }
@@ -137,7 +137,8 @@ final class WhisperManager: NSObject, ObservableObject {
         }
     }
 
-    func stopListening() {
+    /// Stops the mic and timer only. Does not end the filler-word session.
+    func stopCapture() {
         transcribeTimer?.invalidate()
         transcribeTimer = nil
         if audioEngine.isRunning {
@@ -150,8 +151,7 @@ final class WhisperManager: NSObject, ObservableObject {
         bufferLock.unlock()
         DispatchQueue.main.async {
             self.isListening = false
-            self.counter.stopSession()
-            logger.info("Whisper listening stopped")
+            logger.info("Whisper capture stopped")
         }
     }
 
@@ -199,8 +199,7 @@ final class WhisperManager: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 self.isListening = true
                 self.errorMessage = nil
-                self.counter.startSession()
-                logger.info("Whisper listening started")
+                logger.info("Whisper capture started")
             }
         } catch {
             logger.error("Failed to start audio engine: \(error.localizedDescription)")
@@ -264,7 +263,7 @@ final class WhisperManager: NSObject, ObservableObject {
         }
 
         let duration = Double(samples.count) / sampleRate
-        logger.info("Transcribing \(String(format: "%.1f", duration), privacy: .public)s of audio")
+        logger.info("Transcribing \(String(format: "%.1f", duration), privacy: .private)s of audio")
 
         Task {
             do {
@@ -272,7 +271,7 @@ final class WhisperManager: NSObject, ObservableObject {
                 let transcript = segments.map(\.text).joined(separator: " ").trimmingCharacters(in: .whitespaces)
                 let cleaned = TranscriptCleaning.cleaned(transcript)
                 if !cleaned.isEmpty {
-                    logger.info("Whisper transcript: \"\(cleaned, privacy: .public)\"")
+                    logger.info("Whisper transcription produced text")
                     await MainActor.run {
                         self.counter.processWhisperTranscript(cleaned)
                     }

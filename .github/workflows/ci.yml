@@ -62,11 +62,8 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: "13.0"
         run: |
           set -euo pipefail
-          if grep -qE '\.testTarget|testTarget\(' Package.swift || [[ -d Tests ]]; then
-            echo "==> Test target detected; running swift test"
-            # This is a macOS app package. swift test can fail on runners that
-            # lack a GUI / TCC permissions; the Build job step above is required.
-            swift test
-          else
-            echo "==> No test targets in Package.swift or Tests/; skipping swift test"
-          fi
+          echo "==> privacy log gate"
+          chmod +x scripts/verify-no-public-transcript-logs.sh
+          ./scripts/verify-no-public-transcript-logs.sh
+          echo "==> swift test"
+          swift test

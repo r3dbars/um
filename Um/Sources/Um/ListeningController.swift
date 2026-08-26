@@ -3,6 +3,8 @@ import Foundation
 
 /// Single facade the UI talks to. Prefers on-device Whisper (verbatim fillers)
 /// and falls back to Apple Speech if the model file is missing.
+///
+/// Session start/stop lives here once: engines only start and stop capture.
 final class ListeningController: ObservableObject {
     static let shared = ListeningController()
 
@@ -17,6 +19,7 @@ final class ListeningController: ObservableObject {
 
     private let whisper = WhisperManager.shared
     private let speech = SpeechManager.shared
+    private let counter = FillerWordCounter.shared
     private var cancellables = Set<AnyCancellable>()
 
     var usesWhisper: Bool { engine == .whisper }
@@ -34,18 +37,20 @@ final class ListeningController: ObservableObject {
 
     func startListening() {
         engine = whisper.isModelAvailable ? .whisper : .appleSpeech
+        counter.startSession()
         if engine == .whisper {
-            speech.stopListening()
+            speech.stopCapture()
             whisper.startListening()
         } else {
-            whisper.stopListening()
+            whisper.stopCapture()
             speech.startListening()
         }
     }
 
     func stopListening() {
-        whisper.stopListening()
-        speech.stopListening()
+        whisper.stopCapture()
+        speech.stopCapture()
+        counter.stopSession()
     }
 
     private func bind() {

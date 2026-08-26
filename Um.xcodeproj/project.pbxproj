@@ -34,6 +34,8 @@
 		A10025 /* TranscriptCleaningTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10034 /* TranscriptCleaningTests.swift */; };
 		A10026 /* TranscriptDeltaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10035 /* TranscriptDeltaTests.swift */; };
 		A10027 /* SessionArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10036 /* SessionArchiveTests.swift */; };
+		A10028 /* SessionLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10037 /* SessionLifecycle.swift */; };
+		A10029 /* SessionLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10038 /* SessionLifecycleTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,6 +80,8 @@
 		B10034 /* TranscriptCleaningTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptCleaningTests.swift; sourceTree = "<group>"; };
 		B10035 /* TranscriptDeltaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptDeltaTests.swift; sourceTree = "<group>"; };
 		B10036 /* SessionArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionArchiveTests.swift; sourceTree = "<group>"; };
+		B10037 /* SessionLifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLifecycle.swift; sourceTree = "<group>"; };
+		B10038 /* SessionLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLifecycleTests.swift; sourceTree = "<group>"; };
 		B10018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B10019 /* Um.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Um.entitlements; sourceTree = "<group>"; };
 		P10001 /* Um.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Um.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -158,6 +162,7 @@
 				B10031 /* TranscriptDelta.swift */,
 				B10032 /* SessionRecord.swift */,
 				B10033 /* SessionArchive.swift */,
+				B10037 /* SessionLifecycle.swift */,
 			);
 			path = UmCore;
 			sourceTree = "<group>";
@@ -200,6 +205,7 @@
 				B10034 /* TranscriptCleaningTests.swift */,
 				B10035 /* TranscriptDeltaTests.swift */,
 				B10036 /* SessionArchiveTests.swift */,
+				B10038 /* SessionLifecycleTests.swift */,
 			);
 			name = Tests;
 			path = Tests/UmCoreTests;
@@ -370,6 +376,7 @@
 				A10022 /* TranscriptDelta.swift in Sources */,
 				A10023 /* SessionRecord.swift in Sources */,
 				A10024 /* SessionArchive.swift in Sources */,
+				A10028 /* SessionLifecycle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -381,6 +388,7 @@
 				A10025 /* TranscriptCleaningTests.swift in Sources */,
 				A10026 /* TranscriptDeltaTests.swift in Sources */,
 				A10027 /* SessionArchiveTests.swift in Sources */,
+				A10029 /* SessionLifecycleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -476,7 +484,7 @@
 				CODE_SIGNING_REQUIRED = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Um/Resources/Info.plist;
