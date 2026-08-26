@@ -23,7 +23,9 @@ Locally:
 
 ## First-run note
 
-CI builds are ad-hoc signed. README documents right-click → Open.
+Release builds set `ENABLE_HARDENED_RUNTIME = YES` in the Xcode project. That is required for notarization; it is not notarization by itself.
+
+GitHub Releases meant for download should be Developer ID signed and notarized (`scripts/notarize.sh`). Local `swift build` / `./run.sh` binaries and current CI artifacts are ad-hoc signed. README documents right-click → Open for those builds.
 
 To ship a Gatekeeper-clean download you need a **Developer ID Application** certificate (Apple Development is not enough) plus:
 
