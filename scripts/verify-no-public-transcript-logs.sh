@@ -1,29 +1,38 @@
 #!/usr/bin/env bash
 # Fail if Swift diagnostic logs interpolate transcript text as privacy: .public.
+# Python so CI does not depend on ripgrep.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT}"
 
-if ! command -v rg >/dev/null 2>&1; then
-  echo "error: rg (ripgrep) is required" >&2
-  exit 1
-fi
+python3 - <<'PY'
+from pathlib import Path
+import re
+import sys
 
-# Interpolating transcript / cleaned transcript as a public log field.
-if rg -n --pcre2 -g '*.swift' \
-  '\\\((transcript|cleaned)\b[^)]*privacy:\s*\.public' \
-  . ; then
-  echo "error: diagnostic logs must not record transcript text as public" >&2
-  exit 1
-fi
-
-# Labeled transcript payloads in logger strings.
-if rg -n --pcre2 -g '*.swift' \
-  'logger\.\w+\("[^"]*[Tt]ranscript: \\' \
-  . ; then
-  echo "error: do not log transcript payloads" >&2
-  exit 1
-fi
-
-echo "OK: no public transcript logs"
+interpolated = re.compile(
+    r"\\\((transcript|cleaned)\b[^)]*privacy:\s*\.public"
+)
+labeled = re.compile(r'logger\.\w+\("[^"]*[Tt]ranscript: \\')
+hits = []
+skip_dirs = {".build", "DerivedData", ".git", "node_modules"}
+for path in Path(".").rglob("*.swift"):
+    if not path.is_file() or any(part in skip_dirs for part in path.parts):
+        continue
+    text = path.read_text(encoding="utf-8")
+    for lineno, line in enumerate(text.splitlines(), 1):
+        if interpolated.search(line) or labeled.search(line):
+            hits.append(f"{path}:{lineno}:{line}")
+if hits:
+    print("\n".join(hits), file=sys.stderr)
+    if any(interpolated.search(line.split(":", 2)[-1]) for line in hits):
+        print(
+            "error: diagnostic logs must not record transcript text as public",
+            file=sys.stderr,
+        )
+    else:
+        print("error: do not log transcript payloads", file=sys.stderr)
+    raise SystemExit(1)
+print("OK: no public transcript logs")
+PY
