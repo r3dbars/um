@@ -35,7 +35,7 @@ final class SessionStore: ObservableObject {
     }
 
     func recordSession(from counter: FillerWordCounter) {
-        guard counter.sessionDuration >= 5 else { return }
+        guard SessionLifecycle.shouldPersist(duration: counter.sessionDuration) else { return }
         let record = SessionRecord(
             durationSeconds: counter.sessionDuration,
             totalCount: counter.totalCount,

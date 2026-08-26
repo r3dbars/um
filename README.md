@@ -20,8 +20,10 @@
 </p>
 
 <p align="center">
-  <img src="docs/hero.svg" width="800" alt="Um in the Mac menu bar with the popover open, showing a live filler-word count">
+  <img src="docs/hero.svg" width="800" alt="Illustration of Um in the Mac menu bar with the popover open, showing a live filler-word count">
 </p>
+
+<p align="center"><em>Illustration — product screenshots will replace this.</em></p>
 
 Most people have no idea how often they say *um*, *uh*, *like*, or *you know*. Um sits in the menu bar, listens locally, and ticks up. That is the whole product.
 

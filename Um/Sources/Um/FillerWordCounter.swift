@@ -18,6 +18,7 @@ final class FillerWordCounter: ObservableObject {
     private var sessionStartTime: Date?
     private var sessionTimer: Timer?
     private var lastProcessedTranscript: String = ""
+    private var lifecycle = SessionLifecycle()
 
     init() {
         resetCounts()
@@ -26,8 +27,8 @@ final class FillerWordCounter: ObservableObject {
     func updateTrackedWords(_ words: [String]) {
         let added = words.filter { !trackedWords.contains($0) }
         let removed = trackedWords.filter { !words.contains($0) }
-        if !added.isEmpty { logger.info("Words added: \(added.joined(separator: ", "), privacy: .public)") }
-        if !removed.isEmpty { logger.info("Words removed: \(removed.joined(separator: ", "), privacy: .public)") }
+        if !added.isEmpty { logger.info("Words added: \(added.joined(separator: ", "), privacy: .private)") }
+        if !removed.isEmpty { logger.info("Words removed: \(removed.joined(separator: ", "), privacy: .private)") }
         trackedWords = words
         for word in words where counts[word] == nil {
             counts[word] = 0
@@ -35,8 +36,10 @@ final class FillerWordCounter: ObservableObject {
     }
 
     func startSession() {
+        guard !isActive, !lifecycle.isActive else { return }
+        lifecycle.startSession()
         trackedWords = Preferences.shared.trackedWords
-        logger.info("Session starting, tracking \(self.trackedWords.joined(separator: ", "), privacy: .public)")
+        logger.info("Session starting, tracking \(self.trackedWords.count, privacy: .private) words")
         resetCounts()
         isActive = true
         sessionStartTime = Date()
@@ -48,10 +51,15 @@ final class FillerWordCounter: ObservableObject {
     }
 
     func stopSession() {
+        guard isActive else { return }
+        let duration = sessionDuration
+        let shouldPersist = lifecycle.stopSession(duration: duration)
         isActive = false
         sessionTimer?.invalidate()
         sessionTimer = nil
-        SessionStore.shared.recordSession(from: self)
+        if shouldPersist {
+            SessionStore.shared.recordSession(from: self)
+        }
     }
 
     func resetCounts() {
@@ -84,14 +92,12 @@ final class FillerWordCounter: ObservableObject {
     private func applyHits(_ hits: [String: Int]) {
         guard !hits.isEmpty else { return }
         var added = 0
-        var matched: [String] = []
         for (word, count) in hits {
             counts[word, default: 0] += count
             added += count
-            matched.append(count == 1 ? "\"\(word)\"" : "\"\(word)\" x\(count)")
         }
         totalCount += added
-        logger.info("Detected: \(matched.joined(separator: ", "), privacy: .public) — total now \(self.totalCount)")
+        logger.info("Detected \(added, privacy: .private) hit(s) — total now \(self.totalCount, privacy: .private)")
     }
 
     var sortedCounts: [(word: String, count: Int)] {

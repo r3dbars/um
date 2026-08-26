@@ -20,7 +20,7 @@ Apple Speech is cumulative. `TranscriptDelta` keeps only the new suffix so a gro
 
 `WordMatcher` is the rule: word boundaries, case-insensitive, phrases like “you know” as one unit. *like* does not match inside *likewise*. That logic lives in `UmCore` so it can be tested without AppKit or the mic.
 
-`FillerWordCounter` owns the live session: totals, rate, duration. Sessions longer than five seconds are written to `~/Library/Application Support/Um/sessions.json` through `SessionArchive`. No transcript is stored.
+`ListeningController` starts and stops the session once. Engines only start and stop capture, so switching Whisper and Apple Speech does not write a second history row. `SessionLifecycle` is the persist rule: sessions shorter than five seconds are discarded. `FillerWordCounter` owns the live totals, rate, and duration. Qualifying sessions are written to `~/Library/Application Support/Um/sessions.json` through `SessionArchive`. No transcript is stored.
 
 ## What I will not add
 
@@ -29,7 +29,7 @@ No analytics, no account, no cloud speech API. If a change needs the network for
 ## Layout
 
 ```
-Um/Sources/UmCore    matching, transcript cleanup, session file I/O
+Um/Sources/UmCore    matching, transcript cleanup, session lifecycle, session file I/O
 Um/Sources/Um        menu bar, audio, SwiftUI
 Tests/UmCoreTests    unit tests for the core
 scripts/             model download, .app, DMG

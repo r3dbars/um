@@ -4,7 +4,7 @@ The repo is public. Ship from `main` after a pull request — the branch is prot
 
 ## DMG
 
-GitHub Actions on `macos-15` downloads the Whisper model, builds a universal `arm64` + `x86_64` binary, ad-hoc signs `Um.app` (no Developer ID in CI), and attaches `Um-x.y.z.dmg` to a GitHub Release.
+GitHub Actions on `macos-15` downloads the Whisper model, builds a universal `arm64` + `x86_64` binary, and attaches `Um-x.y.z.dmg` to a GitHub Release. Local contributor builds are ad-hoc. Public `v*` releases should be Developer ID signed, hardened-runtime, and notarized with `scripts/notarize.sh` when the signing secrets are available.
 
 ```bash
 git tag v1.0.1
@@ -23,7 +23,9 @@ Locally:
 
 ## First-run note
 
-CI builds are ad-hoc signed. README documents right-click → Open.
+Release builds set `ENABLE_HARDENED_RUNTIME = YES` in the Xcode project. That is required for notarization; it is not notarization by itself.
+
+GitHub Releases meant for download should be Developer ID signed and notarized (`scripts/notarize.sh`). Local `swift build` / `./run.sh` binaries and current CI artifacts are ad-hoc signed. README documents right-click → Open for those builds.
 
 To ship a Gatekeeper-clean download you need a **Developer ID Application** certificate (Apple Development is not enough) plus:
 

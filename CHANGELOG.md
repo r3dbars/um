@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Record a listening session once when you stop (engine switches no longer write a second history row)
+- Diagnostic logs no longer include transcript text
+- Release builds enable the hardened runtime; GitHub releases should be notarized, local builds stay ad-hoc
+
 ## 1.0.1
 
 - Extract transcript cleanup, cumulative-transcript deltas, and session file I/O into `UmCore` with unit tests
